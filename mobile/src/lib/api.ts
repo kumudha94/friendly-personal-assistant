@@ -1,14 +1,20 @@
 import type {
+  CycleLog,
   Goal,
   Habit,
   HabitLog,
   JournalEntry,
   JournalType,
+  Medication,
+  MedicationLog,
   MoodLog,
   QuickAddResult,
   Reminder,
+  SymptomLog,
   WaterLog,
   WeekDay,
+  WeightLog,
+  WeightUnit,
 } from "../types";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5000";
@@ -126,4 +132,67 @@ export function getDigest(period: "daily" | "weekly") {
 
 export function quickAdd(text: string) {
   return request<QuickAddResult>("/quick_add", { method: "POST", body: JSON.stringify({ text }) });
+}
+
+export function getWeightLogs() {
+  return request<WeightLog[]>("/weight_logs");
+}
+
+export function setWeightLog(input: { date: string; weight: number; unit: WeightUnit; notes?: string | null }) {
+  return request<WeightLog>("/weight_logs", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function getMedications() {
+  return request<Medication[]>("/medications");
+}
+
+export function createMedication(input: { name: string; dosage: string; quantityRemaining: number; refillThreshold: number }) {
+  return request<Medication>("/medications", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function updateMedication(id: number, patch: Partial<Pick<Medication, "name" | "dosage" | "quantityRemaining" | "refillThreshold" | "active">>) {
+  return request<Medication>(`/medications/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+}
+
+export function deleteMedication(id: number) {
+  return request<void>(`/medications/${id}`, { method: "DELETE" });
+}
+
+export function getMedicationLogs() {
+  return request<MedicationLog[]>("/medication_logs");
+}
+
+export function setMedicationLog(input: { medicationId: number; date: string; taken: boolean }) {
+  return request<{ log: MedicationLog; medication: Medication }>("/medication_logs", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function getSymptomLogs() {
+  return request<SymptomLog[]>("/symptom_logs");
+}
+
+export function createSymptomLog(input: { date: string; symptom: string; severity: number; notes?: string | null }) {
+  return request<SymptomLog>("/symptom_logs", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function deleteSymptomLog(id: number) {
+  return request<void>(`/symptom_logs/${id}`, { method: "DELETE" });
+}
+
+export function getCycleLogs() {
+  return request<CycleLog[]>("/cycle_logs");
+}
+
+export function createCycleLog(input: { startDate: string; endDate?: string | null; notes?: string | null }) {
+  return request<CycleLog>("/cycle_logs", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function updateCycleLog(id: number, patch: Partial<Pick<CycleLog, "startDate" | "endDate" | "notes">>) {
+  return request<CycleLog>(`/cycle_logs/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+}
+
+export function deleteCycleLog(id: number) {
+  return request<void>(`/cycle_logs/${id}`, { method: "DELETE" });
 }

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { MoreStackParamList } from "../navigation/MoreStack";
@@ -17,11 +17,14 @@ const MENU_ITEMS: {
   { route: "Wellness", icon: "heart", label: "Wellness", description: "Mood check-ins and insights" },
   { route: "Digest", icon: "sparkles", label: "Digest", description: "Claude-generated summary of recent activity" },
   { route: "QuickAdd", icon: "flash", label: "Quick add", description: "Add a reminder, habit, or goal in plain English" },
+  { route: "Weight", icon: "scale", label: "Weight", description: "Track weight over time" },
+  { route: "Medications", icon: "medkit", label: "Medications", description: "Doses, refill alerts, and symptom log" },
+  { route: "Cycle", icon: "calendar", label: "Cycle", description: "Track periods and predict the next one" },
 ];
 
 export default function MoreMenuScreen({ navigation }: Props) {
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {MENU_ITEMS.map((item) => (
         <TouchableOpacity
           key={item.route}
@@ -38,7 +41,7 @@ export default function MoreMenuScreen({ navigation }: Props) {
           <Ionicons name="chevron-forward" size={18} color="#ccc" />
         </TouchableOpacity>
       ))}
-    </View>
+    </ScrollView>
   );
 }
 

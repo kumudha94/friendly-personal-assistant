@@ -59,6 +59,47 @@ export const moodLogs = pgTable("mood_logs", {
   notes: text("notes"),
 });
 
+export const weightLogs = pgTable("weight_logs", {
+  id: serial("id").primaryKey(),
+  date: date("date").notNull(),
+  weight: real("weight").notNull(),
+  unit: text("unit").notNull().default("kg"), // "kg" | "lbs"
+  notes: text("notes"),
+});
+
+export const medications = pgTable("medications", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  dosage: text("dosage").notNull(),
+  quantityRemaining: integer("quantity_remaining").notNull().default(0),
+  refillThreshold: integer("refill_threshold").notNull().default(5),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const medicationLogs = pgTable("medication_logs", {
+  id: serial("id").primaryKey(),
+  medicationId: integer("medication_id").notNull().references(() => medications.id),
+  date: date("date").notNull(),
+  taken: boolean("taken").notNull().default(false),
+});
+
+export const symptomLogs = pgTable("symptom_logs", {
+  id: serial("id").primaryKey(),
+  date: date("date").notNull(),
+  symptom: text("symptom").notNull(),
+  severity: integer("severity").notNull(), // 1-5
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const cycleLogs = pgTable("cycle_logs", {
+  id: serial("id").primaryKey(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date"),
+  notes: text("notes"),
+});
+
 export const insertHabitSchema = createInsertSchema(habits).omit({ id: true, createdAt: true });
 export const insertHabitLogSchema = createInsertSchema(habitLogs).omit({ id: true });
 export const insertReminderSchema = createInsertSchema(reminders).omit({ id: true, createdAt: true });
@@ -69,6 +110,11 @@ export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit(
   createdAt: true,
 });
 export const insertMoodLogSchema = createInsertSchema(moodLogs).omit({ id: true });
+export const insertWeightLogSchema = createInsertSchema(weightLogs).omit({ id: true });
+export const insertMedicationSchema = createInsertSchema(medications).omit({ id: true, createdAt: true });
+export const insertMedicationLogSchema = createInsertSchema(medicationLogs).omit({ id: true });
+export const insertSymptomLogSchema = createInsertSchema(symptomLogs).omit({ id: true, createdAt: true });
+export const insertCycleLogSchema = createInsertSchema(cycleLogs).omit({ id: true });
 
 export type Habit = typeof habits.$inferSelect;
 export type InsertHabit = typeof habits.$inferInsert;
@@ -84,3 +130,13 @@ export type JournalEntry = typeof journalEntries.$inferSelect;
 export type InsertJournalEntry = typeof journalEntries.$inferInsert;
 export type MoodLog = typeof moodLogs.$inferSelect;
 export type InsertMoodLog = typeof moodLogs.$inferInsert;
+export type WeightLog = typeof weightLogs.$inferSelect;
+export type InsertWeightLog = typeof weightLogs.$inferInsert;
+export type Medication = typeof medications.$inferSelect;
+export type InsertMedication = typeof medications.$inferInsert;
+export type MedicationLog = typeof medicationLogs.$inferSelect;
+export type InsertMedicationLog = typeof medicationLogs.$inferInsert;
+export type SymptomLog = typeof symptomLogs.$inferSelect;
+export type InsertSymptomLog = typeof symptomLogs.$inferInsert;
+export type CycleLog = typeof cycleLogs.$inferSelect;
+export type InsertCycleLog = typeof cycleLogs.$inferInsert;

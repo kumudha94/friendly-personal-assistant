@@ -66,3 +66,46 @@ export type QuickAddResult =
   | { type: "reminder"; item: Reminder }
   | { type: "habit"; item: Habit }
   | { type: "goal"; item: Goal };
+
+export type WeightUnit = "kg" | "lbs";
+
+export type WeightLog = {
+  id: number;
+  date: string; // "YYYY-MM-DD"
+  weight: number;
+  unit: WeightUnit;
+  notes: string | null;
+};
+
+export type Medication = {
+  id: number;
+  name: string;
+  dosage: string;
+  quantityRemaining: number;
+  refillThreshold: number;
+  active: boolean;
+  createdAt: string;
+};
+
+export type MedicationLog = {
+  id: number;
+  medicationId: number;
+  date: string; // "YYYY-MM-DD"
+  taken: boolean;
+};
+
+export type SymptomLog = {
+  id: number;
+  date: string; // "YYYY-MM-DD"
+  symptom: string;
+  severity: number; // 1-5
+  notes: string | null;
+  createdAt: string;
+};
+
+export type CycleLog = {
+  id: number;
+  startDate: string; // "YYYY-MM-DD"
+  endDate: string | null;
+  notes: string | null;
+};

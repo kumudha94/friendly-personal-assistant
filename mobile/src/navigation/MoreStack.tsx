@@ -6,6 +6,9 @@ import JournalScreen from "../screens/JournalScreen";
 import WellnessScreen from "../screens/WellnessScreen";
 import DigestScreen from "../screens/DigestScreen";
 import QuickAddScreen from "../screens/QuickAddScreen";
+import WeightScreen from "../screens/WeightScreen";
+import MedicationsScreen from "../screens/MedicationsScreen";
+import CycleScreen from "../screens/CycleScreen";
 
 export type MoreStackParamList = {
   MoreMenu: undefined;
@@ -15,6 +18,9 @@ export type MoreStackParamList = {
   Wellness: undefined;
   Digest: undefined;
   QuickAdd: undefined;
+  Weight: undefined;
+  Medications: undefined;
+  Cycle: undefined;
 };
 
 const Stack = createNativeStackNavigator<MoreStackParamList>();
@@ -29,6 +35,9 @@ export default function MoreStack() {
       <Stack.Screen name="Wellness" component={WellnessScreen} options={{ title: "Wellness" }} />
       <Stack.Screen name="Digest" component={DigestScreen} options={{ title: "Digest" }} />
       <Stack.Screen name="QuickAdd" component={QuickAddScreen} options={{ title: "Quick add" }} />
+      <Stack.Screen name="Weight" component={WeightScreen} options={{ title: "Weight" }} />
+      <Stack.Screen name="Medications" component={MedicationsScreen} options={{ title: "Medications" }} />
+      <Stack.Screen name="Cycle" component={CycleScreen} options={{ title: "Cycle" }} />
     </Stack.Navigator>
   );
 }

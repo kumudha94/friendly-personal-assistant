@@ -100,9 +100,9 @@ Group A — Tracking
 - [x] Water intake (quick-tap logging, daily target, progress bar) — new Water tab + compact Dashboard widget
 - [x] Mood/health check-in (scale + energy + sleep + notes) — new Wellness tab, "Check-in" sub-view
 - [x] Sleep log — folded into the mood check-in's `sleepHours` field rather than a separate tracker (the check-in bullet already listed "sleep" as one of its fields)
-- [ ] Weight/body metrics
-- [ ] Medication/symptom tracker + refill alerts
-- [ ] Menstrual cycle tracking
+- [x] Weight/body metrics — new "Weight" screen under More (kg/lbs toggle, history with trend deltas)
+- [x] Medication/symptom tracker + refill alerts — new "Medications" screen under More, Medications/Symptoms sub-view; taking a dose decrements quantity and alerts when it hits the refill threshold
+- [x] Menstrual cycle tracking — new "Cycle" screen under More, logs period start/end, predicts next start from average cycle length
 
 Group B — Planning
 - [x] Goals module (linked to habits) — new Goals tab, optional habit link shows that habit's streak

@@ -25,9 +25,17 @@ export const reminders = pgTable("reminders", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const waterLogs = pgTable("water_logs", {
+  id: serial("id").primaryKey(),
+  date: date("date").notNull(),
+  count: integer("count").notNull().default(0),
+  target: integer("target").notNull().default(8),
+});
+
 export const insertHabitSchema = createInsertSchema(habits).omit({ id: true, createdAt: true });
 export const insertHabitLogSchema = createInsertSchema(habitLogs).omit({ id: true });
 export const insertReminderSchema = createInsertSchema(reminders).omit({ id: true, createdAt: true });
+export const insertWaterLogSchema = createInsertSchema(waterLogs).omit({ id: true });
 
 export type Habit = typeof habits.$inferSelect;
 export type InsertHabit = typeof habits.$inferInsert;
@@ -35,3 +43,5 @@ export type HabitLog = typeof habitLogs.$inferSelect;
 export type InsertHabitLog = typeof habitLogs.$inferInsert;
 export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = typeof reminders.$inferInsert;
+export type WaterLog = typeof waterLogs.$inferSelect;
+export type InsertWaterLog = typeof waterLogs.$inferInsert;

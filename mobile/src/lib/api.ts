@@ -1,4 +1,4 @@
-import type { Habit, HabitLog, Reminder, WeekDay } from "../types";
+import type { Habit, HabitLog, Reminder, WaterLog, WeekDay } from "../types";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5000";
 
@@ -52,4 +52,12 @@ export function updateReminder(id: number, patch: Partial<Pick<Reminder, "title"
 
 export function deleteReminder(id: number) {
   return request<void>(`/reminders/${id}`, { method: "DELETE" });
+}
+
+export function getWaterLogs() {
+  return request<WaterLog[]>("/water_logs");
+}
+
+export function setWaterLog(input: { date: string; count: number; target: number }) {
+  return request<WaterLog>("/water_logs", { method: "POST", body: JSON.stringify(input) });
 }

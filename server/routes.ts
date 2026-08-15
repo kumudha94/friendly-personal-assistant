@@ -6,9 +6,11 @@ import {
   habits,
   habitLogs,
   reminders,
+  waterLogs,
   insertHabitSchema,
   insertHabitLogSchema,
   insertReminderSchema,
+  insertWaterLogSchema,
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -90,6 +92,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/reminders/:id", async (req, res) => {
     await db.delete(reminders).where(eq(reminders.id, Number(req.params.id)));
     res.status(204).end();
+  });
+
+  // Water logs
+  app.post("/water_logs", async (req, res) => {
+    const parsed = insertWaterLogSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.message });
+    const existing = await db
+      .select()
+      .from(waterLogs)
+      .where(eq(waterLogs.date, parsed.data.date));
+    if (existing.length > 0) {
+      const [log] = await db
+        .update(waterLogs)
+        .set({ count: parsed.data.count, target: parsed.data.target })
+        .where(eq(waterLogs.id, existing[0].id))
+        .returning();
+      return res.json(log);
+    }
+    const [log] = await db.insert(waterLogs).values(parsed.data).returning();
+    res.status(201).json(log);
+  });
+
+  app.get("/water_logs", async (req, res) => {
+    const { date } = req.query;
+    const query = db.select().from(waterLogs);
+    res.json(date ? await query.where(eq(waterLogs.date, String(date))) : await query);
   });
 
   return createServer(app);

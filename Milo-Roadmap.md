@@ -97,7 +97,7 @@ Android OEMs). Complete Phases 1-3 first, then spike this before committing furt
 ## Phase 6 — V2 Backlog (post-launch, prioritize later)
 
 Group A — Tracking
-- [ ] Water intake (quick-tap logging, daily target, progress bar)
+- [x] Water intake (quick-tap logging, daily target, progress bar) — new Water tab + compact Dashboard widget
 - [ ] Mood/health check-in (scale + energy + sleep + notes)
 - [ ] Sleep log
 - [ ] Weight/body metrics

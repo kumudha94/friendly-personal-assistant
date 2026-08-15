@@ -4,21 +4,29 @@ import { format } from "date-fns";
 import { useHabits } from "../hooks/useHabits";
 import { useHabitLogs } from "../hooks/useHabitLogs";
 import { useReminders } from "../hooks/useReminders";
+import { useWaterLogs, useSetWaterLog } from "../hooks/useWater";
 import { calculateStreak } from "../utils/streak";
 import { todayStr } from "../utils/date";
 import { todayWeekDay } from "../utils/weekday";
 import DashboardStats from "../components/DashboardStats";
 import DashboardHabitRow from "../components/DashboardHabitRow";
 import DashboardReminderRow from "../components/DashboardReminderRow";
+import DashboardWaterRow from "../components/DashboardWaterRow";
+
+const DEFAULT_WATER_TARGET = 8;
 
 export default function DashboardScreen() {
   const habitsQuery = useHabits();
   const logsQuery = useHabitLogs();
   const remindersQuery = useReminders();
+  const waterQuery = useWaterLogs();
+  const setWaterLog = useSetWaterLog();
   const [refreshing, setRefreshing] = useState(false);
 
-  const isLoading = habitsQuery.isLoading || logsQuery.isLoading || remindersQuery.isLoading;
-  const isError = habitsQuery.isError || logsQuery.isError || remindersQuery.isError;
+  const isLoading =
+    habitsQuery.isLoading || logsQuery.isLoading || remindersQuery.isLoading || waterQuery.isLoading;
+  const isError =
+    habitsQuery.isError || logsQuery.isError || remindersQuery.isError || waterQuery.isError;
 
   if (isLoading) {
     return (
@@ -39,9 +47,14 @@ export default function DashboardScreen() {
   const habits = habitsQuery.data ?? [];
   const logs = logsQuery.data ?? [];
   const reminders = remindersQuery.data ?? [];
+  const waterLogs = waterQuery.data ?? [];
 
   const today = todayStr();
   const weekday = todayWeekDay();
+
+  const todayWaterLog = waterLogs.find((l) => l.date === today);
+  const waterCount = todayWaterLog?.count ?? 0;
+  const waterTarget = todayWaterLog?.target ?? DEFAULT_WATER_TARGET;
 
   const habitsWithLogs = habits.map((habit) => ({
     habit,
@@ -63,7 +76,12 @@ export default function DashboardScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([habitsQuery.refetch(), logsQuery.refetch(), remindersQuery.refetch()]);
+    await Promise.all([
+      habitsQuery.refetch(),
+      logsQuery.refetch(),
+      remindersQuery.refetch(),
+      waterQuery.refetch(),
+    ]);
     setRefreshing(false);
   };
 
@@ -73,6 +91,14 @@ export default function DashboardScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <Text style={styles.dateHeading}>{format(new Date(), "EEEE, MMM d")}</Text>
+
+      <DashboardWaterRow
+        count={waterCount}
+        target={waterTarget}
+        onAddGlass={() =>
+          setWaterLog.mutate({ date: today, count: waterCount + 1, target: waterTarget })
+        }
+      />
 
       {hasNothingYet ? (
         <View style={styles.welcomeEmpty}>

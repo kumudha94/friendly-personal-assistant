@@ -25,3 +25,10 @@ export type Reminder = {
   active: boolean;
   createdAt: string;
 };
+
+export type WaterLog = {
+  id: number;
+  date: string; // "YYYY-MM-DD"
+  count: number;
+  target: number;
+};

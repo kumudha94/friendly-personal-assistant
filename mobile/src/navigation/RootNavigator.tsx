@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import DashboardScreen from "../screens/DashboardScreen";
 import HabitsScreen from "../screens/HabitsScreen";
 import RemindersScreen from "../screens/RemindersScreen";
+import WaterScreen from "../screens/WaterScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -11,6 +12,7 @@ const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Dashboard: "home",
   Habits: "checkmark-circle",
   Reminders: "alarm",
+  Water: "water",
 };
 
 export default function RootNavigator() {
@@ -26,6 +28,7 @@ export default function RootNavigator() {
         <Tab.Screen name="Dashboard" component={DashboardScreen} />
         <Tab.Screen name="Habits" component={HabitsScreen} />
         <Tab.Screen name="Reminders" component={RemindersScreen} />
+        <Tab.Screen name="Water" component={WaterScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );

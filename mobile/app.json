@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Milo",
-    "slug": "milo",
+    "slug": "assistantmilo",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#030e32"
     },
     "platforms": [
       "android"
@@ -18,7 +18,7 @@
       "package": "com.kumudha94.milo",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#030e32"
       },
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
@@ -29,6 +29,12 @@
     "plugins": [
       "expo-notifications",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "474dffb7-c0bd-439f-8ae0-706b5e473d77"
+      }
+    },
+    "owner": "glorykumudha"
   }
 }

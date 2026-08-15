@@ -106,6 +106,20 @@ export const memories = pgTable("memories", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const emailOtps = pgTable("email_otps", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  code: text("code").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+});
+
+export const financeLink = pgTable("finance_link", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  financeUserId: integer("finance_user_id").notNull(),
+  verifiedAt: timestamp("verified_at").notNull().defaultNow(),
+});
+
 export const insertHabitSchema = createInsertSchema(habits).omit({ id: true, createdAt: true });
 export const insertHabitLogSchema = createInsertSchema(habitLogs).omit({ id: true });
 export const insertReminderSchema = createInsertSchema(reminders).omit({ id: true, createdAt: true });
@@ -122,6 +136,8 @@ export const insertMedicationLogSchema = createInsertSchema(medicationLogs).omit
 export const insertSymptomLogSchema = createInsertSchema(symptomLogs).omit({ id: true, createdAt: true });
 export const insertCycleLogSchema = createInsertSchema(cycleLogs).omit({ id: true });
 export const insertMemorySchema = createInsertSchema(memories).omit({ id: true, createdAt: true });
+export const insertEmailOtpSchema = createInsertSchema(emailOtps).omit({ id: true });
+export const insertFinanceLinkSchema = createInsertSchema(financeLink).omit({ id: true, verifiedAt: true });
 
 export type Habit = typeof habits.$inferSelect;
 export type InsertHabit = typeof habits.$inferInsert;
@@ -149,3 +165,7 @@ export type CycleLog = typeof cycleLogs.$inferSelect;
 export type InsertCycleLog = typeof cycleLogs.$inferInsert;
 export type Memory = typeof memories.$inferSelect;
 export type InsertMemory = typeof memories.$inferInsert;
+export type EmailOtp = typeof emailOtps.$inferSelect;
+export type InsertEmailOtp = typeof emailOtps.$inferInsert;
+export type FinanceLink = typeof financeLink.$inferSelect;
+export type InsertFinanceLink = typeof financeLink.$inferInsert;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { Ionicons } from "@expo/vector-icons";
 import {
   getProfile,
   getQuietHours,
@@ -24,19 +25,28 @@ function formatTime(date: Date): string {
 
 export default function SettingsScreen() {
   const [profile, setProfileState] = useState<Profile | null>(null);
+  const [nameDraft, setNameDraft] = useState("");
+  const [nameJustSaved, setNameJustSaved] = useState(false);
   const [quietHours, setQuietHoursState] = useState<QuietHours | null>(null);
   const [showPicker, setShowPicker] = useState<"start" | "end" | null>(null);
 
   useEffect(() => {
-    getProfile().then(setProfileState);
+    getProfile().then((loaded) => {
+      setProfileState(loaded);
+      setNameDraft(loaded.name);
+    });
     getQuietHours().then(setQuietHoursState);
   }, []);
 
-  const updateProfile = (patch: Partial<Profile>) => {
-    if (!profile) return;
-    const next = { ...profile, ...patch };
+  const nameHasChange = profile !== null && nameDraft.trim() !== profile.name;
+
+  const handleSaveName = () => {
+    if (!profile || !nameHasChange) return;
+    const next = { ...profile, name: nameDraft.trim() };
     setProfileState(next);
     saveProfile(next);
+    setNameJustSaved(true);
+    setTimeout(() => setNameJustSaved(false), 1500);
   };
 
   const update = (patch: Partial<QuietHours>) => {
@@ -53,13 +63,27 @@ export default function SettingsScreen() {
       <Text style={styles.heading}>Preferences</Text>
       <View style={styles.card}>
         <Text style={styles.label}>Your name</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="What should Milo call you?"
-          placeholderTextColor={colors.textMuted}
-          value={profile.name}
-          onChangeText={(name) => updateProfile({ name })}
-        />
+        <View style={styles.nameRow}>
+          <TextInput
+            style={[styles.input, styles.nameInput]}
+            placeholder="What should Milo call you?"
+            placeholderTextColor={colors.textMuted}
+            value={nameDraft}
+            onChangeText={setNameDraft}
+            onSubmitEditing={handleSaveName}
+            returnKeyType="done"
+          />
+          {(nameHasChange || nameJustSaved) && (
+            <TouchableOpacity
+              style={[styles.saveNameButton, nameJustSaved && styles.saveNameButtonSaved]}
+              onPress={handleSaveName}
+              disabled={!nameHasChange}
+            >
+              <Ionicons name="checkmark" size={20} color={colors.textPrimary} />
+            </TouchableOpacity>
+          )}
+        </View>
+        {nameJustSaved && <Text style={styles.savedText}>Saved</Text>}
       </View>
 
       <Text style={styles.heading}>Quiet hours</Text>
@@ -129,6 +153,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.elevatedSurface,
     color: colors.textPrimary,
   },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  nameInput: { flex: 1 },
+  saveNameButton: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.control,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.accent,
+  },
+  saveNameButtonSaved: { backgroundColor: colors.success },
+  savedText: { fontSize: typography.caption.fontSize, color: colors.success, marginTop: -spacing.xs },
   timeRow: { flexDirection: "row", gap: spacing.sm },
   timeButton: {
     flex: 1,

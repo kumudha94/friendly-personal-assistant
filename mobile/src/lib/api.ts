@@ -2,6 +2,7 @@ import type {
   CycleLog,
   DigestResult,
   EveningPlan,
+  FinanceSnapshot,
   Goal,
   Habit,
   HabitLog,
@@ -218,4 +219,23 @@ export function updateMemory(id: number, patch: { text: string }) {
 
 export function deleteMemory(id: number) {
   return request<void>(`/memories/${id}`, { method: "DELETE" });
+}
+
+export function requestFinanceOtp(email: string) {
+  return request<void>("/finance_link/request_otp", { method: "POST", body: JSON.stringify({ email }) });
+}
+
+export function verifyFinanceOtp(email: string, code: string) {
+  return request<{ email: string }>("/finance_link/verify_otp", {
+    method: "POST",
+    body: JSON.stringify({ email, code }),
+  });
+}
+
+export function unlinkFinance() {
+  return request<void>("/finance_link", { method: "DELETE" });
+}
+
+export function getFinanceSnapshot() {
+  return request<FinanceSnapshot>("/finance_snapshot");
 }

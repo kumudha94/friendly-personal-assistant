@@ -23,6 +23,7 @@ const MENU_ITEMS: {
   { route: "Cycle", icon: "calendar", label: "Cycle", description: "Track periods and predict the next one" },
   { route: "Settings", icon: "settings", label: "Settings", description: "Quiet hours and notification controls" },
   { route: "Memory", icon: "bulb", label: "Memory", description: "Things Milo remembers about you" },
+  { route: "Finance", icon: "wallet", label: "Finance", description: "Upcoming bills and balance from FinanceTracker" },
 ];
 
 export default function MoreMenuScreen({ navigation }: Props) {

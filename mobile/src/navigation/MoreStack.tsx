@@ -11,6 +11,8 @@ import MedicationsScreen from "../screens/MedicationsScreen";
 import CycleScreen from "../screens/CycleScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import MemoryScreen from "../screens/MemoryScreen";
+import FinanceScreen from "../screens/FinanceScreen";
+import PersonalScreen from "../screens/PersonalScreen";
 
 export type MoreStackParamList = {
   MoreMenu: undefined;
@@ -25,6 +27,8 @@ export type MoreStackParamList = {
   Cycle: undefined;
   Settings: undefined;
   Memory: undefined;
+  Finance: undefined;
+  Personal: undefined;
 };
 
 const Stack = createNativeStackNavigator<MoreStackParamList>();
@@ -44,6 +48,8 @@ export default function MoreStack() {
       <Stack.Screen name="Cycle" component={CycleScreen} options={{ title: "Cycle" }} />
       <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: "Settings" }} />
       <Stack.Screen name="Memory" component={MemoryScreen} options={{ title: "Memory" }} />
+      <Stack.Screen name="Finance" component={FinanceScreen} options={{ title: "Finance" }} />
+      <Stack.Screen name="Personal" component={PersonalScreen} options={{ title: "Personal" }} />
     </Stack.Navigator>
   );
 }

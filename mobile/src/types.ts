@@ -126,3 +126,14 @@ export type EveningPlan = {
   summary: string;
   items: { time: string; title: string }[];
 };
+
+export type FinanceBillItem = {
+  label: string;
+  amount: number;
+  dueDate: string; // "YYYY-MM-DD"
+  kind: "bill" | "insurance" | "loan";
+};
+
+export type FinanceSnapshot =
+  | { linked: false }
+  | { linked: true; email: string; balance: number; totalDue: number; items: FinanceBillItem[] };

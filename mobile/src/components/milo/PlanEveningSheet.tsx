@@ -48,7 +48,7 @@ export default function PlanEveningSheet({ visible, onClose }: PlanEveningSheetP
     setAccepted(created);
   };
 
-  const coreState = planEvening.isPending ? "thinking" : accepted !== null ? "success" : "idle";
+  const coreState = planEvening.isPending ? "executing" : accepted !== null ? "success" : "idle";
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>

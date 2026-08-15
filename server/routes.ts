@@ -33,6 +33,7 @@ import {
 import { generateDigest } from "./digest";
 import { parseQuickAdd } from "./quickAdd";
 import { planEvening } from "./planEvening";
+import { requestOtp, verifyOtp, unlink as unlinkFinance, getSnapshot as getFinanceSnapshot } from "./financeLink";
 import { asyncHandler } from "./asyncHandler";
 
 const FK_VIOLATION = "23503";
@@ -398,6 +399,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const plan = await planEvening();
         res.json(plan);
+      } catch (err: any) {
+        res.status(502).json({ message: err.message });
+      }
+    }),
+  );
+
+  // FinanceTracker cross-link (email-verified, read-only)
+  app.post(
+    "/finance_link/request_otp",
+    asyncHandler(async (req, res) => {
+      const { email } = req.body;
+      if (!email || typeof email !== "string") {
+        return res.status(400).json({ message: "email is required" });
+      }
+      try {
+        await requestOtp(email);
+        res.status(204).end();
+      } catch (err: any) {
+        const status = err.message?.includes("No FinanceTracker account") ? 404 : 502;
+        res.status(status).json({ message: err.message });
+      }
+    }),
+  );
+
+  app.post(
+    "/finance_link/verify_otp",
+    asyncHandler(async (req, res) => {
+      const { email, code } = req.body;
+      if (!email || !code || typeof email !== "string" || typeof code !== "string") {
+        return res.status(400).json({ message: "email and code are required" });
+      }
+      try {
+        const result = await verifyOtp(email, code);
+        res.json(result);
+      } catch (err: any) {
+        res.status(400).json({ message: err.message });
+      }
+    }),
+  );
+
+  app.delete(
+    "/finance_link",
+    asyncHandler(async (_req, res) => {
+      await unlinkFinance();
+      res.status(204).end();
+    }),
+  );
+
+  app.get(
+    "/finance_snapshot",
+    asyncHandler(async (_req, res) => {
+      try {
+        res.json(await getFinanceSnapshot());
       } catch (err: any) {
         res.status(502).json({ message: err.message });
       }

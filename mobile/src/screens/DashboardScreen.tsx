@@ -1,26 +1,21 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { differenceInCalendarDays, format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { Ionicons } from "@expo/vector-icons";
 import { useHabits } from "../hooks/useHabits";
 import { useHabitLogs } from "../hooks/useHabitLogs";
 import { useReminders } from "../hooks/useReminders";
-import { useWaterLogs, useSetWaterLog } from "../hooks/useWater";
-import { useGoals } from "../hooks/useGoals";
-import { useMedications } from "../hooks/useMedications";
-import { calculateStreak } from "../utils/streak";
+import { useWaterLogs } from "../hooks/useWater";
+import { useFinanceSnapshot } from "../hooks/useFinanceLink";
+import { navigate } from "../navigation/navigationRef";
 import { todayStr } from "../utils/date";
 import { todayWeekDay } from "../utils/weekday";
-import DashboardStats from "../components/DashboardStats";
-import DashboardHabitRow from "../components/DashboardHabitRow";
 import DashboardReminderRow from "../components/DashboardReminderRow";
-import DashboardWaterRow from "../components/DashboardWaterRow";
 import EmptyState from "../components/EmptyState";
+import HomeCard from "../components/HomeCard";
 import MiloCore from "../components/milo/MiloCore";
 import MiloSheet from "../components/milo/MiloSheet";
 import PlanEveningSheet from "../components/milo/PlanEveningSheet";
-import MiloInsight from "../components/milo/MiloInsight";
-import { dismissToday, getDismissals, isDismissed, muteForever, type Dismissals } from "../lib/insights";
 import { getProfile } from "../lib/settings";
 import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
 
@@ -32,46 +27,25 @@ function greeting(name: string): string {
   return name ? `${timeGreeting}, ${name}` : timeGreeting;
 }
 
-function relativeDateLabel(dateStr: string): string {
-  const days = differenceInCalendarDays(parseISO(dateStr), new Date());
-  if (days <= 0) return "today";
-  if (days === 1) return "tomorrow";
-  return `in ${days} days`;
-}
-
 export default function DashboardScreen() {
   const habitsQuery = useHabits();
   const logsQuery = useHabitLogs();
   const remindersQuery = useReminders();
   const waterQuery = useWaterLogs();
-  const goalsQuery = useGoals();
-  const medicationsQuery = useMedications();
-  const setWaterLog = useSetWaterLog();
+  const financeQuery = useFinanceSnapshot();
   const [refreshing, setRefreshing] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [planSheetOpen, setPlanSheetOpen] = useState(false);
-  const [dismissals, setDismissals] = useState<Dismissals>({});
   const [name, setName] = useState("");
 
   useEffect(() => {
-    getDismissals().then(setDismissals);
     getProfile().then((profile) => setName(profile.name));
   }, []);
 
   const isLoading =
-    habitsQuery.isLoading ||
-    logsQuery.isLoading ||
-    remindersQuery.isLoading ||
-    waterQuery.isLoading ||
-    goalsQuery.isLoading ||
-    medicationsQuery.isLoading;
+    habitsQuery.isLoading || logsQuery.isLoading || remindersQuery.isLoading || waterQuery.isLoading;
   const isError =
-    habitsQuery.isError ||
-    logsQuery.isError ||
-    remindersQuery.isError ||
-    waterQuery.isError ||
-    goalsQuery.isError ||
-    medicationsQuery.isError;
+    habitsQuery.isError || logsQuery.isError || remindersQuery.isError || waterQuery.isError;
 
   if (isLoading) {
     return (
@@ -93,8 +67,6 @@ export default function DashboardScreen() {
   const logs = logsQuery.data ?? [];
   const reminders = remindersQuery.data ?? [];
   const waterLogs = waterQuery.data ?? [];
-  const goals = goalsQuery.data ?? [];
-  const medications = medicationsQuery.data ?? [];
 
   const today = todayStr();
   const weekday = todayWeekDay();
@@ -104,19 +76,9 @@ export default function DashboardScreen() {
   const waterCount = todayWaterLog?.count ?? 0;
   const waterTarget = todayWaterLog?.target ?? DEFAULT_WATER_TARGET;
 
-  const habitsWithLogs = habits.map((habit) => ({
-    habit,
-    logs: logs.filter((l) => l.habitId === habit.id),
-  }));
-  const completedToday = habitsWithLogs.filter(
-    ({ logs: habitLogs }) => habitLogs.find((l) => l.date === today)?.completed,
+  const completedToday = habits.filter((habit) =>
+    logs.find((l) => l.habitId === habit.id && l.date === today)?.completed,
   ).length;
-  const streaks = habitsWithLogs.map(({ habit, logs: habitLogs }) => ({
-    habit,
-    streak: calculateStreak(habitLogs),
-  }));
-  const longestStreak = streaks.reduce((max, s) => Math.max(max, s.streak), 0);
-  const topStreak = streaks.reduce((best, s) => (s.streak > (best?.streak ?? 0) ? s : best), streaks[0]);
 
   const todaysReminders = reminders
     .filter((r) => r.active && (r.repeatDays.length === 0 || r.repeatDays.includes(weekday)))
@@ -128,56 +90,15 @@ export default function DashboardScreen() {
 
   const hasNothingYet = habits.length === 0 && reminders.length === 0;
 
-  const allInsights: {
-    id: string;
-    icon: string;
-    text: string;
-    primaryActionLabel?: string;
-    onPrimaryAction?: () => void;
-  }[] = [];
-  if (topStreak && topStreak.streak >= 3) {
-    allInsights.push({
-      id: "streak",
-      icon: "🔥",
-      text: `${topStreak.habit.name} — ${topStreak.streak} day streak`,
-    });
-  }
-  if (waterCount < waterTarget) {
-    allInsights.push({
-      id: "water",
-      icon: "💧",
-      text: `${waterTarget - waterCount} glasses left today`,
-      primaryActionLabel: "Log a glass",
-      onPrimaryAction: () =>
-        setWaterLog.mutate({ date: today, count: waterCount + 1, target: waterTarget }),
-    });
-  }
-  const upcomingGoal = goals
-    .filter((g) => !g.completed && g.targetDate && differenceInCalendarDays(parseISO(g.targetDate), new Date()) <= 7 && differenceInCalendarDays(parseISO(g.targetDate), new Date()) >= 0)
-    .sort((a, b) => (a.targetDate ?? "").localeCompare(b.targetDate ?? ""))[0];
-  if (upcomingGoal && upcomingGoal.targetDate) {
-    allInsights.push({
-      id: `goal-${upcomingGoal.id}`,
-      icon: "🎯",
-      text: `${upcomingGoal.title} — due ${relativeDateLabel(upcomingGoal.targetDate)}`,
-    });
-  }
-  const lowMedication = medications.find((m) => m.active && m.quantityRemaining <= m.refillThreshold);
-  if (lowMedication) {
-    allInsights.push({
-      id: `medication-${lowMedication.id}`,
-      icon: "💊",
-      text: `${lowMedication.name} — refill soon`,
-    });
-  }
-  const visibleInsights = allInsights.filter((insight) => !isDismissed(dismissals, insight.id, today));
+  const personalStatus = `${completedToday}/${habits.length} habits · ${waterCount}/${waterTarget} water`;
 
-  const handleInsightNotNow = (id: string) => {
-    dismissToday(id, today).then(setDismissals);
-  };
-  const handleInsightMuteForever = (id: string) => {
-    muteForever(id).then(setDismissals);
-  };
+  const financeSnapshot = financeQuery.data;
+  const financeStatus =
+    financeSnapshot?.linked && financeSnapshot.items.length > 0
+      ? `${financeSnapshot.items.length} bill${financeSnapshot.items.length === 1 ? "" : "s"} due · ₹${financeSnapshot.totalDue.toLocaleString("en-IN")}`
+      : financeSnapshot?.linked
+        ? "No bills due this month"
+        : "Tap to connect";
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -186,8 +107,7 @@ export default function DashboardScreen() {
       logsQuery.refetch(),
       remindersQuery.refetch(),
       waterQuery.refetch(),
-      goalsQuery.refetch(),
-      medicationsQuery.refetch(),
+      financeQuery.refetch(),
     ]);
     setRefreshing(false);
   };
@@ -221,77 +141,55 @@ export default function DashboardScreen() {
           onAction={() => setSheetOpen(true)}
         />
       ) : (
-        <>
-          <DashboardStats
-            completedToday={completedToday}
-            totalHabits={habits.length}
-            longestStreak={longestStreak}
-          />
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>YOUR DAY</Text>
 
-          <DashboardWaterRow
-            count={waterCount}
-            target={waterTarget}
-            onAddGlass={() =>
-              setWaterLog.mutate({ date: today, count: waterCount + 1, target: waterTarget })
-            }
-          />
-
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>YOUR DAY</Text>
-
-            <View style={styles.timelineBlock}>
-              <Text style={styles.timelineLabel}>NOW</Text>
-              <Text style={styles.timelineValue}>
-                {upNext ? `Up next at ${upNext.time}` : "Nothing urgent"}
-              </Text>
-            </View>
-
-            {upNext && (
-              <View style={styles.timelineBlock}>
-                <Text style={styles.timelineLabel}>UP NEXT</Text>
-                <DashboardReminderRow reminder={upNext} />
-              </View>
-            )}
-
-            {later.length > 0 && (
-              <View style={styles.timelineBlock}>
-                <Text style={styles.timelineLabel}>LATER</Text>
-                {later.map((reminder) => (
-                  <DashboardReminderRow key={reminder.id} reminder={reminder} />
-                ))}
-              </View>
-            )}
+          <View style={styles.timelineBlock}>
+            <Text style={styles.timelineLabel}>NOW</Text>
+            <Text style={styles.timelineValue}>
+              {upNext ? `Up next at ${upNext.time}` : "Nothing urgent"}
+            </Text>
           </View>
 
-          {visibleInsights.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>MILO'S NOTES</Text>
-              {visibleInsights.map((insight) => (
-                <MiloInsight
-                  key={insight.id}
-                  icon={insight.icon}
-                  text={insight.text}
-                  primaryActionLabel={insight.primaryActionLabel}
-                  onPrimaryAction={insight.onPrimaryAction}
-                  onNotNow={() => handleInsightNotNow(insight.id)}
-                  onMuteForever={() => handleInsightMuteForever(insight.id)}
-                />
-              ))}
+          {upNext && (
+            <View style={styles.timelineBlock}>
+              <Text style={styles.timelineLabel}>UP NEXT</Text>
+              <DashboardReminderRow reminder={upNext} />
             </View>
           )}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>HABITS</Text>
-            {habitsWithLogs.length === 0 ? (
-              <Text style={styles.emptyText}>No habits yet — add one in the Habits tab.</Text>
-            ) : (
-              habitsWithLogs.map(({ habit, logs: habitLogs }) => (
-                <DashboardHabitRow key={habit.id} habit={habit} logs={habitLogs} />
-              ))
-            )}
-          </View>
-        </>
+          {later.length > 0 && (
+            <View style={styles.timelineBlock}>
+              <Text style={styles.timelineLabel}>LATER</Text>
+              {later.map((reminder) => (
+                <DashboardReminderRow key={reminder.id} reminder={reminder} />
+              ))}
+            </View>
+          )}
+        </View>
       )}
+
+      <View style={styles.cardsSection}>
+        <HomeCard
+          icon="person-circle-outline"
+          title="My Personal"
+          status={personalStatus}
+          onPress={() => navigate("More", { screen: "Personal" })}
+        />
+        <HomeCard
+          icon="wallet-outline"
+          title="My Finance"
+          status={financeStatus}
+          onPress={() => navigate("More", { screen: "Finance" })}
+        />
+        <HomeCard
+          icon="restaurant-outline"
+          title="My Kitchen"
+          status="Coming soon"
+          gradient
+          disabled
+        />
+      </View>
 
       <MiloSheet
         visible={sheetOpen}
@@ -330,5 +228,5 @@ const styles = StyleSheet.create({
   timelineBlock: { gap: 2, marginBottom: spacing.xs },
   timelineLabel: { color: colors.textMuted, fontSize: typography.caption.fontSize, fontWeight: "600" },
   timelineValue: { color: colors.textPrimary, fontSize: typography.body.fontSize },
-  emptyText: { color: colors.textMuted, fontSize: typography.secondary.fontSize },
+  cardsSection: { gap: spacing.sm },
 });

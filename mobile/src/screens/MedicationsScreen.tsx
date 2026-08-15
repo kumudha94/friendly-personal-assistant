@@ -6,6 +6,7 @@ import MedicationCard from "../components/MedicationCard";
 import SymptomForm from "../components/SymptomForm";
 import SymptomLogCard from "../components/SymptomLogCard";
 import type { Medication, SymptomLog } from "../types";
+import { colors, MILO_BAR_CLEARANCE, radius, spacing } from "../theme/tokens";
 
 type Tab = "medications" | "symptoms";
 
@@ -91,18 +92,18 @@ export default function MedicationsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  errorText: { color: "#dc2626", textAlign: "center", padding: 24 },
-  tabRow: { flexDirection: "row", padding: 16, paddingBottom: 0, gap: 8 },
+  errorText: { color: colors.error, textAlign: "center", padding: spacing.lg },
+  tabRow: { flexDirection: "row", padding: spacing.md, paddingBottom: 0, gap: spacing.sm },
   tabButton: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: radius.control,
     alignItems: "center",
-    backgroundColor: "#f5f5f7",
+    backgroundColor: colors.surface,
   },
-  tabButtonActive: { backgroundColor: "#4f46e5" },
-  tabText: { fontSize: 13, fontWeight: "600", color: "#333" },
-  tabTextActive: { color: "#fff" },
-  content: { padding: 16, gap: 12 },
-  emptyText: { fontSize: 13, color: "#999" },
+  tabButtonActive: { backgroundColor: colors.accent },
+  tabText: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
+  tabTextActive: { color: colors.textPrimary },
+  content: { padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE, gap: 12 },
+  emptyText: { fontSize: 13, color: colors.textMuted },
 });

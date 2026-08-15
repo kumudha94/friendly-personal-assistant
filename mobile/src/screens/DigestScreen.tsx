@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useGenerateDigest } from "../hooks/useDigest";
+import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
 
 type Period = "daily" | "weekly";
 
@@ -38,7 +39,7 @@ export default function DigestScreen() {
         disabled={generateDigest.isPending}
       >
         {generateDigest.isPending ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.textPrimary} />
         ) : (
           <Text style={styles.buttonText}>Generate digest</Text>
         )}
@@ -49,8 +50,22 @@ export default function DigestScreen() {
       )}
 
       {generateDigest.data && (
-        <View style={styles.resultCard}>
-          <Text style={styles.resultText}>{generateDigest.data.text}</Text>
+        <View style={styles.resultBlock}>
+          <Text style={styles.headlineText}>{generateDigest.data.headline}</Text>
+
+          {generateDigest.data.highlight && (
+            <View style={styles.highlightCard}>
+              <Text style={styles.highlightIcon}>💡</Text>
+              <Text style={styles.highlightText}>{generateDigest.data.highlight}</Text>
+            </View>
+          )}
+
+          {generateDigest.data.sections.map((section) => (
+            <View key={section.label} style={styles.sectionCard}>
+              <Text style={styles.sectionLabel}>{section.label}</Text>
+              <Text style={styles.sectionDetail}>{section.detail}</Text>
+            </View>
+          ))}
         </View>
       )}
     </ScrollView>
@@ -58,28 +73,53 @@ export default function DigestScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 14 },
-  heading: { fontSize: 20, fontWeight: "700" },
-  subheading: { fontSize: 13, color: "#999" },
-  pillRow: { flexDirection: "row", gap: 8 },
+  container: { padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE, gap: 14 },
+  heading: { fontSize: typography.sectionTitle.fontSize, fontWeight: "700", color: colors.textPrimary },
+  subheading: { fontSize: 13, color: colors.textMuted },
+  pillRow: { flexDirection: "row", gap: spacing.sm },
   pill: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: radius.control,
     alignItems: "center",
-    backgroundColor: "#f5f5f7",
+    backgroundColor: colors.surface,
   },
-  pillSelected: { backgroundColor: "#4f46e5" },
-  pillText: { fontSize: 13, fontWeight: "600", color: "#333" },
-  pillTextSelected: { color: "#fff" },
+  pillSelected: { backgroundColor: colors.accent },
+  pillText: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
+  pillTextSelected: { color: colors.textPrimary },
   button: {
-    backgroundColor: "#4f46e5",
-    borderRadius: 8,
+    backgroundColor: colors.accent,
+    borderRadius: radius.control,
     paddingVertical: 12,
     alignItems: "center",
   },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  error: { color: "#dc2626", fontSize: 12 },
-  resultCard: { padding: 16, borderRadius: 12, backgroundColor: "#f5f5f7" },
-  resultText: { fontSize: 14, color: "#111", lineHeight: 21 },
+  buttonText: { color: colors.textPrimary, fontWeight: "600" },
+  error: { color: colors.error, fontSize: 12 },
+  resultBlock: { gap: spacing.sm },
+  headlineText: {
+    fontSize: typography.sectionTitle.fontSize,
+    fontWeight: "700",
+    color: colors.textPrimary,
+    lineHeight: 26,
+  },
+  highlightCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+    padding: spacing.sm + 6,
+    borderRadius: radius.card,
+    backgroundColor: colors.elevatedSurface,
+  },
+  highlightIcon: { fontSize: 16 },
+  highlightText: { flex: 1, fontSize: typography.secondary.fontSize, color: colors.textSecondary, lineHeight: 19 },
+  sectionCard: {
+    padding: spacing.sm + 6,
+    borderRadius: radius.card,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 2,
+  },
+  sectionLabel: { fontSize: typography.caption.fontSize, fontWeight: "600", color: colors.accent },
+  sectionDetail: { fontSize: typography.secondary.fontSize, color: colors.textPrimary, lineHeight: 19 },
 });

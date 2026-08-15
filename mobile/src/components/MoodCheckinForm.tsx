@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import ScaleTapPicker from "./ScaleTapPicker";
 import { useMoodLogs, useSetMoodLog } from "../hooks/useMood";
 import { todayStr } from "../utils/date";
+import { colors, radius, spacing, typography } from "../theme/tokens";
 
 export default function MoodCheckinForm() {
   const moodQuery = useMoodLogs();
@@ -55,6 +56,7 @@ export default function MoodCheckinForm() {
         <TextInput
           style={styles.input}
           placeholder="Anything worth remembering?"
+          placeholderTextColor={colors.textMuted}
           value={notes}
           onChangeText={setNotes}
           multiline
@@ -62,7 +64,7 @@ export default function MoodCheckinForm() {
       </View>
       <TouchableOpacity style={styles.button} onPress={handleSave} disabled={setMoodLog.isPending}>
         {setMoodLog.isPending ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.textPrimary} />
         ) : (
           <Text style={styles.buttonText}>{todayLog ? "Update check-in" : "Save check-in"}</Text>
         )}
@@ -75,23 +77,24 @@ export default function MoodCheckinForm() {
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 16, borderRadius: 12, backgroundColor: "#f5f5f7", gap: 14 },
-  heading: { fontSize: 16, fontWeight: "700" },
-  label: { fontSize: 13, fontWeight: "600", color: "#333", marginBottom: 6 },
+  card: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, gap: 14 },
+  heading: { fontSize: typography.body.fontSize, fontWeight: "700", color: colors.textPrimary },
+  label: { fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 6 },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
   },
   button: {
-    backgroundColor: "#4f46e5",
-    borderRadius: 8,
+    backgroundColor: colors.accent,
+    borderRadius: radius.control,
     paddingVertical: 12,
     alignItems: "center",
   },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  error: { color: "#dc2626", fontSize: 12 },
+  buttonText: { color: colors.textPrimary, fontWeight: "600" },
+  error: { color: colors.error, fontSize: 12 },
 });

@@ -4,6 +4,7 @@ import type { JournalType } from "../types";
 import { JOURNAL_PROMPTS, JOURNAL_TYPE_LABELS } from "../utils/journalPrompts";
 import { todayStr } from "../utils/date";
 import { useCreateJournalEntry } from "../hooks/useJournal";
+import { colors, radius, spacing } from "../theme/tokens";
 
 const TYPES: JournalType[] = ["daily", "weekly", "monthly"];
 
@@ -44,6 +45,7 @@ export default function JournalComposer() {
       <TextInput
         style={styles.input}
         placeholder="Write here…"
+        placeholderTextColor={colors.textMuted}
         value={content}
         onChangeText={setContent}
         multiline
@@ -55,7 +57,7 @@ export default function JournalComposer() {
         disabled={!canSubmit}
       >
         {createEntry.isPending ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.textPrimary} />
         ) : (
           <Text style={styles.buttonText}>Save entry</Text>
         )}
@@ -68,37 +70,38 @@ export default function JournalComposer() {
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 16, borderRadius: 12, backgroundColor: "#f5f5f7", gap: 10 },
-  typeRow: { flexDirection: "row", gap: 8 },
+  card: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, gap: 10 },
+  typeRow: { flexDirection: "row", gap: spacing.sm },
   pill: {
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     paddingHorizontal: 12,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fff",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
-  pillSelected: { backgroundColor: "#4f46e5", borderColor: "#4f46e5" },
-  pillText: { color: "#333", fontSize: 12, fontWeight: "500" },
-  pillTextSelected: { color: "#fff" },
-  prompt: { fontSize: 12, color: "#666", fontStyle: "italic" },
+  pillSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
+  pillText: { color: colors.textSecondary, fontSize: 12, fontWeight: "500" },
+  pillTextSelected: { color: colors.textPrimary },
+  prompt: { fontSize: 12, color: colors.textSecondary, fontStyle: "italic" },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     minHeight: 100,
     textAlignVertical: "top",
+    color: colors.textPrimary,
   },
   button: {
-    backgroundColor: "#4f46e5",
-    borderRadius: 8,
+    backgroundColor: colors.accent,
+    borderRadius: radius.control,
     paddingVertical: 12,
     alignItems: "center",
   },
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  error: { color: "#dc2626", fontSize: 12 },
+  buttonText: { color: colors.textPrimary, fontWeight: "600" },
+  error: { color: colors.error, fontSize: 12 },
 });

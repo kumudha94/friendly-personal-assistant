@@ -2,7 +2,9 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-nativ
 import { useJournalEntries } from "../hooks/useJournal";
 import JournalComposer from "../components/JournalComposer";
 import JournalEntryCard from "../components/JournalEntryCard";
+import EmptyState from "../components/EmptyState";
 import type { JournalEntry } from "../types";
+import { colors, MILO_BAR_CLEARANCE, spacing } from "../theme/tokens";
 
 export default function JournalScreen() {
   const entriesQuery = useJournalEntries();
@@ -36,9 +38,7 @@ export default function JournalScreen() {
       keyExtractor={(item: JournalEntry) => String(item.id)}
       ListHeaderComponent={<JournalComposer />}
       ListEmptyComponent={
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No entries yet — write your first one above.</Text>
-        </View>
+        <EmptyState title="No entries yet." subtitle="Write your first one above." />
       }
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       renderItem={({ item }) => <JournalEntryCard entry={item} />}
@@ -47,10 +47,8 @@ export default function JournalScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: 16, gap: 12 },
+  list: { padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE, gap: 12 },
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  errorText: { color: "#dc2626", textAlign: "center", padding: 24 },
-  emptyState: { paddingVertical: 32, alignItems: "center" },
-  emptyText: { color: "#999" },
+  errorText: { color: colors.error, textAlign: "center", padding: spacing.lg },
   separator: { height: 12 },
 });

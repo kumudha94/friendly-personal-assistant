@@ -4,6 +4,7 @@ import type { Reminder } from "../types";
 import { useDeleteReminder, useUpdateReminder } from "../hooks/useReminders";
 import { snoozeReminder } from "../lib/notifications";
 import { DAY_LABELS } from "../utils/weekday";
+import { colors, radius } from "../theme/tokens";
 
 export default function ReminderCard({ reminder }: { reminder: Reminder }) {
   const updateReminder = useUpdateReminder();
@@ -36,14 +37,14 @@ export default function ReminderCard({ reminder }: { reminder: Reminder }) {
             Alert.alert("Snoozed", `"${reminder.title}" will remind you again in 10 minutes.`);
           }}
         >
-          <Ionicons name="time-outline" size={16} color="#4f46e5" />
+          <Ionicons name="time-outline" size={16} color={colors.accent} />
           <Text style={styles.actionText}>Snooze 10m</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => deleteReminder.mutate(reminder.id)}
         >
-          <Ionicons name="trash-outline" size={16} color="#dc2626" />
+          <Ionicons name="trash-outline" size={16} color={colors.error} />
           <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
         </TouchableOpacity>
       </View>
@@ -54,18 +55,18 @@ export default function ReminderCard({ reminder }: { reminder: Reminder }) {
 const styles = StyleSheet.create({
   card: {
     padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#fff",
+    borderRadius: radius.card,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: colors.border,
     gap: 10,
   },
   headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   titleGroup: { flex: 1 },
-  title: { fontSize: 15, fontWeight: "600" },
-  meta: { fontSize: 12, color: "#999", marginTop: 2 },
+  title: { fontSize: 15, fontWeight: "600", color: colors.textPrimary },
+  meta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
   actionsRow: { flexDirection: "row", gap: 16 },
   actionButton: { flexDirection: "row", alignItems: "center", gap: 4 },
-  actionText: { fontSize: 12, fontWeight: "600", color: "#4f46e5" },
-  deleteText: { color: "#dc2626" },
+  actionText: { fontSize: 12, fontWeight: "600", color: colors.accent },
+  deleteText: { color: colors.error },
 });

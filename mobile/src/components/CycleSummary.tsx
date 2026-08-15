@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { format } from "date-fns";
 import { averageCycleLength, predictNextStart } from "../utils/cycle";
 import type { CycleLog } from "../types";
+import { colors, radius, spacing, typography } from "../theme/tokens";
 
 export default function CycleSummary({ logs }: { logs: CycleLog[] }) {
   const startDates = logs.map((l) => l.startDate);
@@ -37,11 +38,11 @@ export default function CycleSummary({ logs }: { logs: CycleLog[] }) {
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 16, borderRadius: 12, backgroundColor: "#fdf2f8" },
+  card: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface },
   row: { flexDirection: "row" },
   stat: { flex: 1, alignItems: "center", gap: 2 },
-  divider: { width: 1, backgroundColor: "#fbcfe8" },
-  value: { fontSize: 18, fontWeight: "700", color: "#be185d" },
-  label: { fontSize: 12, color: "#999" },
-  emptyText: { fontSize: 13, color: "#999" },
+  divider: { width: 1, backgroundColor: colors.border },
+  value: { fontSize: typography.sectionTitle.fontSize, fontWeight: "700", color: colors.cycle },
+  label: { fontSize: 12, color: colors.textMuted },
+  emptyText: { fontSize: 13, color: colors.textMuted },
 });

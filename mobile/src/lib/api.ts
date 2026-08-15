@@ -1,5 +1,7 @@
 import type {
   CycleLog,
+  DigestResult,
+  EveningPlan,
   Goal,
   Habit,
   HabitLog,
@@ -7,6 +9,7 @@ import type {
   JournalType,
   Medication,
   MedicationLog,
+  Memory,
   MoodLog,
   QuickAddResult,
   Reminder,
@@ -127,7 +130,11 @@ export function setMoodLog(input: {
 }
 
 export function getDigest(period: "daily" | "weekly") {
-  return request<{ text: string }>(`/digest?period=${period}`);
+  return request<DigestResult>(`/digest?period=${period}`);
+}
+
+export function planEvening() {
+  return request<EveningPlan>("/plan_evening", { method: "POST" });
 }
 
 export function quickAdd(text: string) {
@@ -195,4 +202,20 @@ export function updateCycleLog(id: number, patch: Partial<Pick<CycleLog, "startD
 
 export function deleteCycleLog(id: number) {
   return request<void>(`/cycle_logs/${id}`, { method: "DELETE" });
+}
+
+export function getMemories() {
+  return request<Memory[]>("/memories");
+}
+
+export function createMemory(input: { text: string }) {
+  return request<Memory>("/memories", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function updateMemory(id: number, patch: { text: string }) {
+  return request<Memory>(`/memories/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+}
+
+export function deleteMemory(id: number) {
+  return request<void>(`/memories/${id}`, { method: "DELETE" });
 }

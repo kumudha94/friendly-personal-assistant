@@ -5,6 +5,7 @@ import { useWeightLogs, useSetWeightLog } from "../hooks/useWeight";
 import UnitToggle from "../components/UnitToggle";
 import { todayStr } from "../utils/date";
 import type { WeightLog, WeightUnit } from "../types";
+import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
 
 function WeightForm() {
   const weightQuery = useWeightLogs();
@@ -38,6 +39,7 @@ function WeightForm() {
           style={styles.input}
           keyboardType="decimal-pad"
           placeholder="0.0"
+          placeholderTextColor={colors.textMuted}
           value={weight}
           onChangeText={setWeight}
         />
@@ -45,7 +47,7 @@ function WeightForm() {
       </View>
       <TouchableOpacity style={[styles.button, !canSubmit && styles.buttonDisabled]} onPress={handleSave} disabled={!canSubmit}>
         {setWeightLog.isPending ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.textPrimary} />
         ) : (
           <Text style={styles.buttonText}>{todayLog ? "Update" : "Save"}</Text>
         )}
@@ -115,39 +117,40 @@ export default function WeightScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: 16, gap: 4 },
-  headerGap: { gap: 12, marginBottom: 4 },
+  list: { padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE, gap: spacing.xs },
+  headerGap: { gap: 12, marginBottom: spacing.xs },
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  errorText: { color: "#dc2626", textAlign: "center", padding: 24 },
-  card: { padding: 16, borderRadius: 12, backgroundColor: "#f5f5f7", gap: 12 },
-  heading: { fontSize: 16, fontWeight: "700" },
+  errorText: { color: colors.error, textAlign: "center", padding: spacing.lg },
+  card: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, gap: 12 },
+  heading: { fontSize: typography.body.fontSize, fontWeight: "700", color: colors.textPrimary },
   inputRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
   },
-  button: { backgroundColor: "#4f46e5", borderRadius: 8, paddingVertical: 12, alignItems: "center" },
+  button: { backgroundColor: colors.accent, borderRadius: radius.control, paddingVertical: 12, alignItems: "center" },
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  error: { color: "#dc2626", fontSize: 12 },
-  sectionTitle: { fontSize: 13, fontWeight: "600", color: "#666" },
-  emptyText: { fontSize: 13, color: "#999" },
+  buttonText: { color: colors.textPrimary, fontWeight: "600" },
+  error: { color: colors.error, fontSize: 12 },
+  sectionTitle: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
+  emptyText: { fontSize: 13, color: colors.textMuted },
   historyRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: colors.border,
   },
-  historyDate: { fontSize: 13, fontWeight: "600", width: 52 },
-  historyWeight: { flex: 1, fontSize: 13, color: "#111" },
+  historyDate: { fontSize: 13, fontWeight: "600", width: 52, color: colors.textSecondary },
+  historyWeight: { flex: 1, fontSize: 13, color: colors.textPrimary },
   historyDelta: { fontSize: 12, fontWeight: "600" },
-  deltaUp: { color: "#dc2626" },
-  deltaDown: { color: "#16a34a" },
+  deltaUp: { color: colors.error },
+  deltaDown: { color: colors.success },
 });

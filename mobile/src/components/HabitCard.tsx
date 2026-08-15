@@ -5,6 +5,7 @@ import { calculateStreak } from "../utils/streak";
 import { todayStr } from "../utils/date";
 import WeekGrid from "./WeekGrid";
 import { useToggleHabitLog } from "../hooks/useHabitLogs";
+import { colors, radius } from "../theme/tokens";
 
 export default function HabitCard({ habit, logs }: { habit: Habit; logs: HabitLog[] }) {
   const toggleLog = useToggleHabitLog();
@@ -23,7 +24,7 @@ export default function HabitCard({ habit, logs }: { habit: Habit; logs: HabitLo
             toggleLog.mutate({ habitId: habit.id, date: today, completed: !completedToday })
           }
         >
-          {completedToday && <Ionicons name="checkmark" size={16} color="#fff" />}
+          {completedToday && <Ionicons name="checkmark" size={16} color={colors.textPrimary} />}
         </TouchableOpacity>
         <View style={styles.titleGroup}>
           <Text style={styles.name}>{habit.name}</Text>
@@ -32,7 +33,7 @@ export default function HabitCard({ habit, logs }: { habit: Habit; logs: HabitLo
           </Text>
         </View>
         <View style={styles.streakBadge}>
-          <Ionicons name="flame" size={14} color="#f97316" />
+          <Ionicons name="flame" size={14} color={colors.warning} />
           <Text style={styles.streakText}>{streak}</Text>
         </View>
       </View>
@@ -44,10 +45,10 @@ export default function HabitCard({ habit, logs }: { habit: Habit; logs: HabitLo
 const styles = StyleSheet.create({
   card: {
     padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#fff",
+    borderRadius: radius.card,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: colors.border,
   },
   headerRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   checkbox: {
@@ -55,14 +56,14 @@ const styles = StyleSheet.create({
     height: 26,
     borderRadius: 13,
     borderWidth: 2,
-    borderColor: "#4f46e5",
+    borderColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
   },
-  checkboxChecked: { backgroundColor: "#4f46e5" },
+  checkboxChecked: { backgroundColor: colors.accent },
   titleGroup: { flex: 1 },
-  name: { fontSize: 15, fontWeight: "600" },
-  meta: { fontSize: 12, color: "#999", marginTop: 2 },
+  name: { fontSize: 15, fontWeight: "600", color: colors.textPrimary },
+  meta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
   streakBadge: { flexDirection: "row", alignItems: "center", gap: 4 },
-  streakText: { fontSize: 13, fontWeight: "600", color: "#f97316" },
+  streakText: { fontSize: 13, fontWeight: "600", color: colors.warning },
 });

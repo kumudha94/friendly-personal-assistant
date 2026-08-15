@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-nati
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { MoreStackParamList } from "../navigation/MoreStack";
+import { colors, MILO_BAR_CLEARANCE, radius, spacing } from "../theme/tokens";
 
 type Props = NativeStackScreenProps<MoreStackParamList, "MoreMenu">;
 
@@ -20,6 +21,8 @@ const MENU_ITEMS: {
   { route: "Weight", icon: "scale", label: "Weight", description: "Track weight over time" },
   { route: "Medications", icon: "medkit", label: "Medications", description: "Doses, refill alerts, and symptom log" },
   { route: "Cycle", icon: "calendar", label: "Cycle", description: "Track periods and predict the next one" },
+  { route: "Settings", icon: "settings", label: "Settings", description: "Quiet hours and notification controls" },
+  { route: "Memory", icon: "bulb", label: "Memory", description: "Things Milo remembers about you" },
 ];
 
 export default function MoreMenuScreen({ navigation }: Props) {
@@ -32,13 +35,13 @@ export default function MoreMenuScreen({ navigation }: Props) {
           onPress={() => navigation.navigate(item.route)}
         >
           <View style={styles.iconWrap}>
-            <Ionicons name={item.icon} size={20} color="#4f46e5" />
+            <Ionicons name={item.icon} size={20} color={colors.accent} />
           </View>
           <View style={styles.textGroup}>
             <Text style={styles.label}>{item.label}</Text>
             <Text style={styles.description}>{item.description}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color="#ccc" />
+          <Ionicons name="chevron-forward" size={18} color={colors.border} />
         </TouchableOpacity>
       ))}
     </ScrollView>
@@ -46,26 +49,26 @@ export default function MoreMenuScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 10 },
+  container: { padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE, gap: 10 },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#fff",
+    borderRadius: radius.card,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: colors.border,
   },
   iconWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#eef2ff",
+    backgroundColor: colors.accentSoft,
     alignItems: "center",
     justifyContent: "center",
   },
   textGroup: { flex: 1 },
-  label: { fontSize: 15, fontWeight: "600" },
-  description: { fontSize: 12, color: "#999", marginTop: 2 },
+  label: { fontSize: 15, fontWeight: "600", color: colors.textPrimary },
+  description: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
 });

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import type { WeightUnit } from "../types";
+import { colors, spacing } from "../theme/tokens";
 
 export default function UnitToggle({
   value,
@@ -27,16 +28,16 @@ export default function UnitToggle({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", gap: 8 },
+  row: { flexDirection: "row", gap: spacing.sm },
   pill: {
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     paddingHorizontal: 14,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fff",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
-  pillSelected: { backgroundColor: "#4f46e5", borderColor: "#4f46e5" },
-  pillText: { color: "#333", fontSize: 13, fontWeight: "500" },
-  pillTextSelected: { color: "#fff" },
+  pillSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
+  pillText: { color: colors.textSecondary, fontSize: 13, fontWeight: "500" },
+  pillTextSelected: { color: colors.textPrimary },
 });

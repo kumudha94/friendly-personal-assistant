@@ -1,5 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import type { WeekDay } from "../types";
+import { colors } from "../theme/tokens";
 
 const DAYS: { key: WeekDay; label: string }[] = [
   { key: "sun", label: "S" },
@@ -47,11 +48,11 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
-  circleSelected: { backgroundColor: "#4f46e5", borderColor: "#4f46e5" },
-  text: { fontSize: 12, fontWeight: "600", color: "#333" },
-  textSelected: { color: "#fff" },
+  circleSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
+  text: { fontSize: 12, fontWeight: "600", color: colors.textSecondary },
+  textSelected: { color: colors.textPrimary },
 });

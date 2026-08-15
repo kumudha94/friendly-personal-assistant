@@ -4,6 +4,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import DayPicker from "./DayPicker";
 import type { WeekDay } from "../types";
 import { useCreateReminder } from "../hooks/useReminders";
+import { colors, radius, spacing } from "../theme/tokens";
 
 function formatTime(date: Date): string {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
@@ -38,6 +39,7 @@ export default function ReminderForm() {
       <TextInput
         style={styles.input}
         placeholder="e.g. Take medication"
+        placeholderTextColor={colors.textMuted}
         value={title}
         onChangeText={setTitle}
       />
@@ -66,7 +68,7 @@ export default function ReminderForm() {
         disabled={!canSubmit}
       >
         {createReminder.isPending ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.textPrimary} />
         ) : (
           <Text style={styles.buttonText}>Add reminder</Text>
         )}
@@ -79,32 +81,33 @@ export default function ReminderForm() {
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 16, borderRadius: 12, backgroundColor: "#f5f5f7", gap: 12 },
-  label: { fontSize: 13, fontWeight: "600", color: "#333" },
+  card: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, gap: 12 },
+  label: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
   },
   timeButton: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingVertical: 10,
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
   },
-  timeText: { fontSize: 16, fontWeight: "600" },
+  timeText: { fontSize: 16, fontWeight: "600", color: colors.textPrimary },
   button: {
-    backgroundColor: "#4f46e5",
-    borderRadius: 8,
+    backgroundColor: colors.accent,
+    borderRadius: radius.control,
     paddingVertical: 12,
     alignItems: "center",
   },
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  error: { color: "#dc2626", fontSize: 12 },
+  buttonText: { color: colors.textPrimary, fontWeight: "600" },
+  error: { color: colors.error, fontSize: 12 },
 });

@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import type { Medication, MedicationLog } from "../types";
 import { useDeleteMedication, useSetMedicationLog } from "../hooks/useMedications";
 import { todayStr } from "../utils/date";
+import { colors, radius } from "../theme/tokens";
 
 export default function MedicationCard({ medication, logs }: { medication: Medication; logs: MedicationLog[] }) {
   const setMedicationLog = useSetMedicationLog();
@@ -31,21 +32,21 @@ export default function MedicationCard({ medication, logs }: { medication: Medic
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <TouchableOpacity style={[styles.checkbox, takenToday && styles.checkboxChecked]} onPress={handleToggle}>
-          {takenToday && <Ionicons name="checkmark" size={14} color="#fff" />}
+          {takenToday && <Ionicons name="checkmark" size={14} color={colors.textPrimary} />}
         </TouchableOpacity>
         <View style={styles.titleGroup}>
           <Text style={styles.name}>{medication.name}</Text>
           <Text style={styles.meta}>{medication.dosage}</Text>
         </View>
         <TouchableOpacity onPress={() => deleteMedication.mutate(medication.id)}>
-          <Ionicons name="trash-outline" size={18} color="#dc2626" />
+          <Ionicons name="trash-outline" size={18} color={colors.error} />
         </TouchableOpacity>
       </View>
       <View style={styles.footerRow}>
         <Text style={styles.quantityText}>{medication.quantityRemaining} remaining</Text>
         {lowSupply && (
           <View style={styles.lowSupplyBadge}>
-            <Ionicons name="alert-circle" size={12} color="#dc2626" />
+            <Ionicons name="alert-circle" size={12} color={colors.error} />
             <Text style={styles.lowSupplyText}>Refill soon</Text>
           </View>
         )}
@@ -57,10 +58,10 @@ export default function MedicationCard({ medication, logs }: { medication: Medic
 const styles = StyleSheet.create({
   card: {
     padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#fff",
+    borderRadius: radius.card,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: colors.border,
     gap: 8,
   },
   headerRow: { flexDirection: "row", alignItems: "center", gap: 12 },
@@ -69,16 +70,16 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: "#4f46e5",
+    borderColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
   },
-  checkboxChecked: { backgroundColor: "#4f46e5" },
+  checkboxChecked: { backgroundColor: colors.accent },
   titleGroup: { flex: 1 },
-  name: { fontSize: 15, fontWeight: "600" },
-  meta: { fontSize: 12, color: "#999", marginTop: 2 },
+  name: { fontSize: 15, fontWeight: "600", color: colors.textPrimary },
+  meta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
   footerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  quantityText: { fontSize: 12, color: "#999" },
+  quantityText: { fontSize: 12, color: colors.textMuted },
   lowSupplyBadge: { flexDirection: "row", alignItems: "center", gap: 4 },
-  lowSupplyText: { fontSize: 11, fontWeight: "600", color: "#dc2626" },
+  lowSupplyText: { fontSize: 11, fontWeight: "600", color: colors.error },
 });

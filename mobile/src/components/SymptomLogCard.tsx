@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { format, parseISO } from "date-fns";
 import type { SymptomLog } from "../types";
 import { useDeleteSymptomLog } from "../hooks/useMedications";
+import { colors, radius } from "../theme/tokens";
 
 export default function SymptomLogCard({ log }: { log: SymptomLog }) {
   const deleteSymptomLog = useDeleteSymptomLog();
@@ -17,7 +18,7 @@ export default function SymptomLogCard({ log }: { log: SymptomLog }) {
           </Text>
         </View>
         <TouchableOpacity onPress={() => deleteSymptomLog.mutate(log.id)}>
-          <Ionicons name="trash-outline" size={16} color="#dc2626" />
+          <Ionicons name="trash-outline" size={16} color={colors.error} />
         </TouchableOpacity>
       </View>
       {!!log.notes && <Text style={styles.notes}>{log.notes}</Text>}
@@ -28,15 +29,15 @@ export default function SymptomLogCard({ log }: { log: SymptomLog }) {
 const styles = StyleSheet.create({
   card: {
     padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#fff",
+    borderRadius: radius.card,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: colors.border,
     gap: 6,
   },
   headerRow: { flexDirection: "row", alignItems: "center" },
   titleGroup: { flex: 1 },
-  symptom: { fontSize: 15, fontWeight: "600" },
-  meta: { fontSize: 12, color: "#999", marginTop: 2 },
-  notes: { fontSize: 13, color: "#666" },
+  symptom: { fontSize: 15, fontWeight: "600", color: colors.textPrimary },
+  meta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  notes: { fontSize: 13, color: colors.textSecondary },
 });

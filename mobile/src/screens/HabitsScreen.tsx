@@ -3,7 +3,9 @@ import { useHabits } from "../hooks/useHabits";
 import { useHabitLogs } from "../hooks/useHabitLogs";
 import HabitForm from "../components/HabitForm";
 import HabitCard from "../components/HabitCard";
+import EmptyState from "../components/EmptyState";
 import type { Habit } from "../types";
+import { colors, MILO_BAR_CLEARANCE, spacing } from "../theme/tokens";
 
 export default function HabitsScreen() {
   const habitsQuery = useHabits();
@@ -35,9 +37,7 @@ export default function HabitsScreen() {
       keyExtractor={(item: Habit) => String(item.id)}
       ListHeaderComponent={<HabitForm />}
       ListEmptyComponent={
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No habits yet — add one above to get started.</Text>
-        </View>
+        <EmptyState title="No habits yet." subtitle="Add one above to get started." />
       }
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       renderItem={({ item }) => (
@@ -48,10 +48,8 @@ export default function HabitsScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: 16, gap: 12 },
+  list: { padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE, gap: 12 },
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  errorText: { color: "#dc2626", textAlign: "center", padding: 24 },
-  emptyState: { paddingVertical: 32, alignItems: "center" },
-  emptyText: { color: "#999" },
+  errorText: { color: colors.error, textAlign: "center", padding: spacing.lg },
   separator: { height: 12 },
 });

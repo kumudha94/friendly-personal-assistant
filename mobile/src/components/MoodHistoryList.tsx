@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { format, parseISO } from "date-fns";
 import type { MoodLog } from "../types";
+import { colors, spacing } from "../theme/tokens";
 
 const MOOD_EMOJI = ["", "😞", "😕", "😐", "🙂", "😄"];
 
@@ -27,10 +28,10 @@ export default function MoodHistoryList({ logs }: { logs: MoodLog[] }) {
 }
 
 const styles = StyleSheet.create({
-  list: { gap: 4 },
-  row: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 4 },
+  list: { gap: spacing.xs },
+  row: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: spacing.xs },
   emoji: { fontSize: 18 },
-  date: { fontSize: 13, fontWeight: "600", width: 52 },
-  meta: { fontSize: 12, color: "#999" },
-  emptyText: { fontSize: 13, color: "#999" },
+  date: { fontSize: 13, fontWeight: "600", width: 52, color: colors.textSecondary },
+  meta: { fontSize: 12, color: colors.textMuted },
+  emptyText: { fontSize: 13, color: colors.textMuted },
 });

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { correlationLabel } from "../utils/correlation";
+import { colors, radius } from "../theme/tokens";
 
 export default function InsightCard({
   title,
@@ -41,17 +42,17 @@ export default function InsightCard({
 const styles = StyleSheet.create({
   card: {
     padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#fff",
+    borderRadius: radius.card,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: colors.border,
     gap: 6,
   },
-  title: { fontSize: 14, fontWeight: "600" },
-  label: { fontSize: 13, fontWeight: "600", color: "#4f46e5" },
-  barTrack: { height: 8, borderRadius: 4, backgroundColor: "#e5e5e5", overflow: "hidden" },
-  barFill: { height: "100%", backgroundColor: "#4f46e5", borderRadius: 4 },
-  barFillNegative: { backgroundColor: "#dc2626" },
-  meta: { fontSize: 11, color: "#999" },
-  subtleText: { fontSize: 12, color: "#999" },
+  title: { fontSize: 14, fontWeight: "600", color: colors.textPrimary },
+  label: { fontSize: 13, fontWeight: "600", color: colors.accent },
+  barTrack: { height: 8, borderRadius: 4, backgroundColor: colors.border, overflow: "hidden" },
+  barFill: { height: "100%", backgroundColor: colors.accent, borderRadius: 4 },
+  barFillNegative: { backgroundColor: colors.error },
+  meta: { fontSize: 11, color: colors.textMuted },
+  subtleText: { fontSize: 12, color: colors.textMuted },
 });

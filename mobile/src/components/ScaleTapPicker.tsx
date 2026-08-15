@@ -1,4 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { colors, radius, spacing } from "../theme/tokens";
 
 export default function ScaleTapPicker({
   label,
@@ -34,19 +35,19 @@ export default function ScaleTapPicker({
 
 const styles = StyleSheet.create({
   container: { gap: 6 },
-  label: { fontSize: 13, fontWeight: "600", color: "#333" },
-  row: { flexDirection: "row", gap: 8 },
+  label: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
+  row: { flexDirection: "row", gap: spacing.sm },
   circle: {
     flex: 1,
     height: 36,
-    borderRadius: 8,
+    borderRadius: radius.control,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
   },
-  circleSelected: { backgroundColor: "#4f46e5", borderColor: "#4f46e5" },
-  text: { fontSize: 14, fontWeight: "600", color: "#333" },
-  textSelected: { color: "#fff" },
+  circleSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
+  text: { fontSize: 14, fontWeight: "600", color: colors.textSecondary },
+  textSelected: { color: colors.textPrimary },
 });

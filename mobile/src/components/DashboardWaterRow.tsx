@@ -1,6 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import WaterProgressBar from "./WaterProgressBar";
+import { colors, radius, spacing, typography } from "../theme/tokens";
 
 export default function DashboardWaterRow({
   count,
@@ -18,7 +19,7 @@ export default function DashboardWaterRow({
           Water: {count}/{target} glasses
         </Text>
         <TouchableOpacity style={styles.addButton} onPress={onAddGlass}>
-          <Ionicons name="add" size={16} color="#fff" />
+          <Ionicons name="add" size={16} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
       <WaterProgressBar count={count} target={target} />
@@ -28,18 +29,18 @@ export default function DashboardWaterRow({
 
 const styles = StyleSheet.create({
   card: {
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#f0f9ff",
-    gap: 8,
+    padding: spacing.sm + 6,
+    borderRadius: radius.card,
+    backgroundColor: colors.surface,
+    gap: spacing.sm,
   },
   headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  label: { fontSize: 13, fontWeight: "600", color: "#0369a1" },
+  label: { fontSize: typography.secondary.fontSize, fontWeight: "600", color: colors.water },
   addButton: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: "#0ea5e9",
+    backgroundColor: colors.water,
     alignItems: "center",
     justifyContent: "center",
   },

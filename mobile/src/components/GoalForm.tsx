@@ -4,6 +4,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { format } from "date-fns";
 import { useHabits } from "../hooks/useHabits";
 import { useCreateGoal } from "../hooks/useGoals";
+import { colors, radius, spacing } from "../theme/tokens";
 
 export default function GoalForm() {
   const [title, setTitle] = useState("");
@@ -43,12 +44,14 @@ export default function GoalForm() {
       <TextInput
         style={styles.input}
         placeholder="e.g. Run a 5k"
+        placeholderTextColor={colors.textMuted}
         value={title}
         onChangeText={setTitle}
       />
       <TextInput
         style={styles.input}
         placeholder="Notes (optional)"
+        placeholderTextColor={colors.textMuted}
         value={description}
         onChangeText={setDescription}
         multiline
@@ -108,7 +111,7 @@ export default function GoalForm() {
         disabled={!canSubmit}
       >
         {createGoal.isPending ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.textPrimary} />
         ) : (
           <Text style={styles.buttonText}>Add goal</Text>
         )}
@@ -121,47 +124,48 @@ export default function GoalForm() {
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 16, borderRadius: 12, backgroundColor: "#f5f5f7", gap: 12 },
-  label: { fontSize: 13, fontWeight: "600", color: "#333" },
+  card: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, gap: 12 },
+  label: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
   },
-  chipRow: { flexDirection: "row", gap: 8 },
+  chipRow: { flexDirection: "row", gap: spacing.sm },
   chip: {
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     paddingHorizontal: 14,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fff",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
-  chipSelected: { backgroundColor: "#4f46e5", borderColor: "#4f46e5" },
-  chipText: { color: "#333", fontSize: 13, fontWeight: "500" },
-  chipTextSelected: { color: "#fff" },
+  chipSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
+  chipText: { color: colors.textSecondary, fontSize: 13, fontWeight: "500" },
+  chipTextSelected: { color: colors.textPrimary },
   dateRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   dateButton: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingVertical: 10,
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
   },
-  dateText: { fontSize: 14, fontWeight: "500" },
-  clearText: { color: "#dc2626", fontSize: 13, fontWeight: "600" },
+  dateText: { fontSize: 14, fontWeight: "500", color: colors.textPrimary },
+  clearText: { color: colors.error, fontSize: 13, fontWeight: "600" },
   button: {
-    backgroundColor: "#4f46e5",
-    borderRadius: 8,
+    backgroundColor: colors.accent,
+    borderRadius: radius.control,
     paddingVertical: 12,
     alignItems: "center",
   },
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  error: { color: "#dc2626", fontSize: 12 },
+  buttonText: { color: colors.textPrimary, fontWeight: "600" },
+  error: { color: colors.error, fontSize: 12 },
 });

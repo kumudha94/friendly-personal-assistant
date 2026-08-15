@@ -2,7 +2,9 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-nativ
 import { useGoals } from "../hooks/useGoals";
 import GoalForm from "../components/GoalForm";
 import GoalCard from "../components/GoalCard";
+import EmptyState from "../components/EmptyState";
 import type { Goal } from "../types";
+import { colors, MILO_BAR_CLEARANCE, spacing } from "../theme/tokens";
 
 export default function GoalsScreen() {
   const goalsQuery = useGoals();
@@ -34,9 +36,7 @@ export default function GoalsScreen() {
       keyExtractor={(item: Goal) => String(item.id)}
       ListHeaderComponent={<GoalForm />}
       ListEmptyComponent={
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No goals yet — add one above.</Text>
-        </View>
+        <EmptyState title="No goals yet." subtitle="Add one above." />
       }
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       renderItem={({ item }) => <GoalCard goal={item} />}
@@ -45,10 +45,8 @@ export default function GoalsScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: 16, gap: 12 },
+  list: { padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE, gap: 12 },
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  errorText: { color: "#dc2626", textAlign: "center", padding: 24 },
-  emptyState: { paddingVertical: 32, alignItems: "center" },
-  emptyText: { color: "#999" },
+  errorText: { color: colors.error, textAlign: "center", padding: spacing.lg },
   separator: { height: 12 },
 });

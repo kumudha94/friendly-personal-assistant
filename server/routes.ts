@@ -27,9 +27,12 @@ import {
   insertMedicationLogSchema,
   insertSymptomLogSchema,
   insertCycleLogSchema,
+  memories,
+  insertMemorySchema,
 } from "@shared/schema";
 import { generateDigest } from "./digest";
 import { parseQuickAdd } from "./quickAdd";
+import { planEvening } from "./planEvening";
 import { asyncHandler } from "./asyncHandler";
 
 const FK_VIOLATION = "23503";
@@ -222,6 +225,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }),
   );
 
+  // Memories
+  app.post(
+    "/memories",
+    asyncHandler(async (req, res) => {
+      const parsed = insertMemorySchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: parsed.error.message });
+      const [memory] = await db.insert(memories).values(parsed.data).returning();
+      res.status(201).json(memory);
+    }),
+  );
+
+  app.get(
+    "/memories",
+    asyncHandler(async (_req, res) => {
+      res.json(await db.select().from(memories));
+    }),
+  );
+
+  app.patch(
+    "/memories/:id",
+    asyncHandler(async (req, res) => {
+      const [memory] = await db
+        .update(memories)
+        .set({ text: req.body.text })
+        .where(eq(memories.id, Number(req.params.id)))
+        .returning();
+      if (!memory) return res.status(404).json({ message: "Memory not found" });
+      res.json(memory);
+    }),
+  );
+
+  app.delete(
+    "/memories/:id",
+    asyncHandler(async (req, res) => {
+      await db.delete(memories).where(eq(memories.id, Number(req.params.id)));
+      res.status(204).end();
+    }),
+  );
+
   // Journal entries
   app.post(
     "/journal_entries",
@@ -303,8 +345,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     asyncHandler(async (req, res) => {
       const period = req.query.period === "weekly" ? "weekly" : "daily";
       try {
-        const text = await generateDigest(period);
-        res.json({ text });
+        const digest = await generateDigest(period);
+        res.json(digest);
       } catch (err: any) {
         res.status(502).json({ message: err.message });
       }
@@ -343,6 +385,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .values({ title: result.title, targetDate: result.targetDate })
           .returning();
         return res.status(201).json({ type: "goal", item: goal });
+      } catch (err: any) {
+        res.status(502).json({ message: err.message });
+      }
+    }),
+  );
+
+  // Claude-powered evening plan (proposal only — client creates reminders on accept)
+  app.post(
+    "/plan_evening",
+    asyncHandler(async (_req, res) => {
+      try {
+        const plan = await planEvening();
+        res.json(plan);
       } catch (err: any) {
         res.status(502).json({ message: err.message });
       }

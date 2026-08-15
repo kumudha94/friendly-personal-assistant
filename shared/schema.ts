@@ -100,6 +100,12 @@ export const cycleLogs = pgTable("cycle_logs", {
   notes: text("notes"),
 });
 
+export const memories = pgTable("memories", {
+  id: serial("id").primaryKey(),
+  text: text("text").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const insertHabitSchema = createInsertSchema(habits).omit({ id: true, createdAt: true });
 export const insertHabitLogSchema = createInsertSchema(habitLogs).omit({ id: true });
 export const insertReminderSchema = createInsertSchema(reminders).omit({ id: true, createdAt: true });
@@ -115,6 +121,7 @@ export const insertMedicationSchema = createInsertSchema(medications).omit({ id:
 export const insertMedicationLogSchema = createInsertSchema(medicationLogs).omit({ id: true });
 export const insertSymptomLogSchema = createInsertSchema(symptomLogs).omit({ id: true, createdAt: true });
 export const insertCycleLogSchema = createInsertSchema(cycleLogs).omit({ id: true });
+export const insertMemorySchema = createInsertSchema(memories).omit({ id: true, createdAt: true });
 
 export type Habit = typeof habits.$inferSelect;
 export type InsertHabit = typeof habits.$inferInsert;
@@ -140,3 +147,5 @@ export type SymptomLog = typeof symptomLogs.$inferSelect;
 export type InsertSymptomLog = typeof symptomLogs.$inferInsert;
 export type CycleLog = typeof cycleLogs.$inferSelect;
 export type InsertCycleLog = typeof cycleLogs.$inferInsert;
+export type Memory = typeof memories.$inferSelect;
+export type InsertMemory = typeof memories.$inferInsert;

@@ -4,7 +4,9 @@ import { useReminders } from "../hooks/useReminders";
 import { ensureAndroidChannel, requestNotificationPermissions } from "../lib/notifications";
 import ReminderForm from "../components/ReminderForm";
 import ReminderCard from "../components/ReminderCard";
+import EmptyState from "../components/EmptyState";
 import type { Reminder } from "../types";
+import { colors, MILO_BAR_CLEARANCE, radius, spacing } from "../theme/tokens";
 
 export default function RemindersScreen() {
   const remindersQuery = useReminders();
@@ -56,9 +58,7 @@ export default function RemindersScreen() {
         </View>
       }
       ListEmptyComponent={
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No reminders yet — add one above.</Text>
-        </View>
+        <EmptyState title="No reminders yet." subtitle="Add one above." />
       }
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       renderItem={({ item }) => <ReminderCard reminder={item} />}
@@ -67,13 +67,11 @@ export default function RemindersScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: 16, gap: 12 },
+  list: { padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE, gap: 12 },
   headerGap: { gap: 12 },
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  errorText: { color: "#dc2626", textAlign: "center", padding: 24 },
-  emptyState: { paddingVertical: 32, alignItems: "center" },
-  emptyText: { color: "#999" },
+  errorText: { color: colors.error, textAlign: "center", padding: spacing.lg },
   separator: { height: 12 },
-  warningBanner: { backgroundColor: "#fef3c7", borderRadius: 8, padding: 10 },
-  warningText: { color: "#92400e", fontSize: 12 },
+  warningBanner: { backgroundColor: colors.elevatedSurface, borderRadius: radius.control, padding: 10 },
+  warningText: { color: colors.warning, fontSize: 12 },
 });

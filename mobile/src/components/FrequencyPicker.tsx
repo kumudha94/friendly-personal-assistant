@@ -1,5 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import type { Frequency } from "../types";
+import { colors, spacing } from "../theme/tokens";
 
 const OPTIONS: Frequency[] = ["daily", "weekly", "custom"];
 
@@ -31,15 +32,15 @@ export default function FrequencyPicker({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", gap: 8 },
+  row: { flexDirection: "row", gap: spacing.sm },
   pill: {
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     paddingHorizontal: 14,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: colors.border,
   },
-  pillSelected: { backgroundColor: "#4f46e5", borderColor: "#4f46e5" },
-  pillText: { color: "#333", fontSize: 13, fontWeight: "500" },
-  pillTextSelected: { color: "#fff" },
+  pillSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
+  pillText: { color: colors.textSecondary, fontSize: 13, fontWeight: "500" },
+  pillTextSelected: { color: colors.textPrimary },
 });

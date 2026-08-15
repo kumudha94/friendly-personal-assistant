@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import FrequencyPicker from "./FrequencyPicker";
 import type { Frequency } from "../types";
 import { useCreateHabit } from "../hooks/useHabits";
+import { colors, radius, spacing } from "../theme/tokens";
 
 export default function HabitForm() {
   const [name, setName] = useState("");
@@ -32,6 +33,7 @@ export default function HabitForm() {
       <TextInput
         style={styles.input}
         placeholder="e.g. Drink water"
+        placeholderTextColor={colors.textMuted}
         value={name}
         onChangeText={setName}
       />
@@ -51,7 +53,7 @@ export default function HabitForm() {
         disabled={!canSubmit}
       >
         {createHabit.isPending ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.textPrimary} />
         ) : (
           <Text style={styles.buttonText}>Add habit</Text>
         )}
@@ -64,34 +66,36 @@ export default function HabitForm() {
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 16, borderRadius: 12, backgroundColor: "#f5f5f7", gap: 12 },
-  label: { fontSize: 13, fontWeight: "600", color: "#333" },
+  card: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, gap: 12 },
+  label: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
   },
   targetRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   targetInput: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingHorizontal: 12,
     paddingVertical: 6,
     width: 64,
     textAlign: "center",
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
   },
   button: {
-    backgroundColor: "#4f46e5",
-    borderRadius: 8,
+    backgroundColor: colors.accent,
+    borderRadius: radius.control,
     paddingVertical: 12,
     alignItems: "center",
   },
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  error: { color: "#dc2626", fontSize: 12 },
+  buttonText: { color: colors.textPrimary, fontWeight: "600" },
+  error: { color: colors.error, fontSize: 12 },
 });

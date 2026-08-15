@@ -1,26 +1,14 @@
 import { useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useQuickAdd } from "../hooks/useQuickAdd";
-import type { QuickAddResult } from "../types";
+import ActionReceipt from "../components/milo/ActionReceipt";
+import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
 
 const EXAMPLES = [
   "remind me to call mom at 6pm",
   "start a daily habit to stretch every morning",
   "goal: read 12 books this year",
 ];
-
-function describeResult(result: QuickAddResult): string {
-  if (result.type === "reminder") {
-    return `Reminder "${result.item.title}" at ${result.item.time}${
-      result.item.repeatDays.length ? ` (repeats ${result.item.repeatDays.join(", ")})` : ""
-    }`;
-  }
-  if (result.type === "habit") {
-    return `Habit "${result.item.name}" (${result.item.frequency})`;
-  }
-  return `Goal "${result.item.title}"${result.item.targetDate ? ` — due ${result.item.targetDate}` : ""}`;
-}
 
 export default function QuickAddScreen() {
   const [text, setText] = useState("");
@@ -44,23 +32,19 @@ export default function QuickAddScreen() {
       <TextInput
         style={styles.input}
         placeholder="e.g. remind me to call mom at 6"
+        placeholderTextColor={colors.textMuted}
         value={text}
         onChangeText={setText}
         multiline
       />
 
       <TouchableOpacity style={[styles.button, !canSubmit && styles.buttonDisabled]} onPress={handleSubmit} disabled={!canSubmit}>
-        {quickAdd.isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Add</Text>}
+        {quickAdd.isPending ? <ActivityIndicator color={colors.textPrimary} /> : <Text style={styles.buttonText}>Add</Text>}
       </TouchableOpacity>
 
       {quickAdd.isError && <Text style={styles.error}>{(quickAdd.error as Error).message}</Text>}
 
-      {quickAdd.isSuccess && (
-        <View style={styles.resultCard}>
-          <Ionicons name="checkmark-circle" size={18} color="#16a34a" />
-          <Text style={styles.resultText}>Created: {describeResult(quickAdd.data)}</Text>
-        </View>
-      )}
+      {quickAdd.isSuccess && <ActionReceipt result={quickAdd.data} />}
 
       <View style={styles.examplesBlock}>
         <Text style={styles.examplesTitle}>Try things like:</Text>
@@ -75,38 +59,30 @@ export default function QuickAddScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 14 },
-  heading: { fontSize: 20, fontWeight: "700" },
-  subheading: { fontSize: 13, color: "#999" },
+  container: { padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE, gap: 14 },
+  heading: { fontSize: typography.sectionTitle.fontSize, fontWeight: "700", color: colors.textPrimary },
+  subheading: { fontSize: 13, color: colors.textMuted },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     minHeight: 60,
     textAlignVertical: "top",
+    color: colors.textPrimary,
   },
   button: {
-    backgroundColor: "#4f46e5",
-    borderRadius: 8,
+    backgroundColor: colors.accent,
+    borderRadius: radius.control,
     paddingVertical: 12,
     alignItems: "center",
   },
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  error: { color: "#dc2626", fontSize: 12 },
-  resultCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#f0fdf4",
-  },
-  resultText: { flex: 1, fontSize: 13, color: "#166534", fontWeight: "500" },
-  examplesBlock: { gap: 4, marginTop: 8 },
-  examplesTitle: { fontSize: 12, fontWeight: "600", color: "#666" },
-  exampleText: { fontSize: 12, color: "#999", fontStyle: "italic" },
+  buttonText: { color: colors.textPrimary, fontWeight: "600" },
+  error: { color: colors.error, fontSize: 12 },
+  examplesBlock: { gap: spacing.xs, marginTop: spacing.sm },
+  examplesTitle: { fontSize: 12, fontWeight: "600", color: colors.textSecondary },
+  exampleText: { fontSize: 12, color: colors.textMuted, fontStyle: "italic" },
 });

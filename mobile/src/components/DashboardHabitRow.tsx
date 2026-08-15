@@ -4,6 +4,7 @@ import type { Habit, HabitLog } from "../types";
 import { calculateStreak } from "../utils/streak";
 import { todayStr } from "../utils/date";
 import { useToggleHabitLog } from "../hooks/useHabitLogs";
+import { colors, typography } from "../theme/tokens";
 
 export default function DashboardHabitRow({ habit, logs }: { habit: Habit; logs: HabitLog[] }) {
   const toggleLog = useToggleHabitLog();
@@ -19,14 +20,14 @@ export default function DashboardHabitRow({ habit, logs }: { habit: Habit; logs:
           toggleLog.mutate({ habitId: habit.id, date: today, completed: !completedToday })
         }
       >
-        {completedToday && <Ionicons name="checkmark" size={14} color="#fff" />}
+        {completedToday && <Ionicons name="checkmark" size={14} color={colors.textPrimary} />}
       </TouchableOpacity>
       <Text style={[styles.name, completedToday && styles.nameDone]} numberOfLines={1}>
         {habit.name}
       </Text>
       {streak > 0 && (
         <View style={styles.streak}>
-          <Ionicons name="flame" size={12} color="#f97316" />
+          <Ionicons name="flame" size={12} color={colors.warning} />
           <Text style={styles.streakText}>{streak}</Text>
         </View>
       )}
@@ -41,13 +42,13 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: "#4f46e5",
+    borderColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
   },
-  checkboxChecked: { backgroundColor: "#4f46e5" },
-  name: { flex: 1, fontSize: 14, color: "#111" },
-  nameDone: { color: "#999", textDecorationLine: "line-through" },
+  checkboxChecked: { backgroundColor: colors.accent },
+  name: { flex: 1, fontSize: typography.body.fontSize, color: colors.textPrimary },
+  nameDone: { color: colors.textMuted, textDecorationLine: "line-through" },
   streak: { flexDirection: "row", alignItems: "center", gap: 2 },
-  streakText: { fontSize: 12, fontWeight: "600", color: "#f97316" },
+  streakText: { fontSize: typography.caption.fontSize, fontWeight: "600", color: colors.warning },
 });

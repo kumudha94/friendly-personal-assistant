@@ -6,6 +6,7 @@ import { useHabits } from "../hooks/useHabits";
 import { useHabitLogs } from "../hooks/useHabitLogs";
 import { useDeleteGoal, useUpdateGoal } from "../hooks/useGoals";
 import { calculateStreak } from "../utils/streak";
+import { colors, radius, spacing } from "../theme/tokens";
 
 export default function GoalCard({ goal }: { goal: Goal }) {
   const updateGoal = useUpdateGoal();
@@ -25,7 +26,7 @@ export default function GoalCard({ goal }: { goal: Goal }) {
           style={[styles.checkbox, goal.completed && styles.checkboxChecked]}
           onPress={() => updateGoal.mutate({ id: goal.id, patch: { completed: !goal.completed } })}
         >
-          {goal.completed && <Ionicons name="checkmark" size={14} color="#fff" />}
+          {goal.completed && <Ionicons name="checkmark" size={14} color={colors.textPrimary} />}
         </TouchableOpacity>
         <View style={styles.titleGroup}>
           <Text style={[styles.title, goal.completed && styles.titleDone]}>{goal.title}</Text>
@@ -36,7 +37,7 @@ export default function GoalCard({ goal }: { goal: Goal }) {
             )}
             {linkedHabit && (
               <View style={styles.habitBadge}>
-                <Ionicons name="checkmark-circle" size={12} color="#4f46e5" />
+                <Ionicons name="checkmark-circle" size={12} color={colors.accent} />
                 <Text style={styles.habitBadgeText}>
                   {linkedHabit.name}
                   {linkedStreak ? ` · ${linkedStreak}d streak` : ""}
@@ -46,7 +47,7 @@ export default function GoalCard({ goal }: { goal: Goal }) {
           </View>
         </View>
         <TouchableOpacity onPress={() => deleteGoal.mutate(goal.id)}>
-          <Ionicons name="trash-outline" size={18} color="#dc2626" />
+          <Ionicons name="trash-outline" size={18} color={colors.error} />
         </TouchableOpacity>
       </View>
     </View>
@@ -56,10 +57,10 @@ export default function GoalCard({ goal }: { goal: Goal }) {
 const styles = StyleSheet.create({
   card: {
     padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#fff",
+    borderRadius: radius.card,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: colors.border,
   },
   headerRow: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
   checkbox: {
@@ -67,26 +68,26 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: "#4f46e5",
+    borderColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 2,
   },
-  checkboxChecked: { backgroundColor: "#4f46e5" },
-  titleGroup: { flex: 1, gap: 4 },
-  title: { fontSize: 15, fontWeight: "600" },
-  titleDone: { color: "#999", textDecorationLine: "line-through" },
-  description: { fontSize: 13, color: "#666" },
-  metaRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 2 },
-  meta: { fontSize: 11, color: "#999" },
+  checkboxChecked: { backgroundColor: colors.accent },
+  titleGroup: { flex: 1, gap: spacing.xs },
+  title: { fontSize: 15, fontWeight: "600", color: colors.textPrimary },
+  titleDone: { color: colors.textMuted, textDecorationLine: "line-through" },
+  description: { fontSize: 13, color: colors.textSecondary },
+  metaRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: 2 },
+  meta: { fontSize: 11, color: colors.textMuted },
   habitBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    backgroundColor: "#eef2ff",
+    gap: spacing.xs,
+    backgroundColor: colors.accentSoft,
     borderRadius: 999,
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
   },
-  habitBadgeText: { fontSize: 11, fontWeight: "600", color: "#4f46e5" },
+  habitBadgeText: { fontSize: 11, fontWeight: "600", color: colors.accent },
 });

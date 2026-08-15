@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useCreateMedication } from "../hooks/useMedications";
+import { colors, radius, spacing } from "../theme/tokens";
 
 export default function MedicationForm() {
   const [name, setName] = useState("");
@@ -34,8 +35,8 @@ export default function MedicationForm() {
   return (
     <View style={styles.card}>
       <Text style={styles.label}>New medication</Text>
-      <TextInput style={styles.input} placeholder="e.g. Vitamin D" value={name} onChangeText={setName} />
-      <TextInput style={styles.input} placeholder="Dosage, e.g. 1000 IU" value={dosage} onChangeText={setDosage} />
+      <TextInput style={styles.input} placeholder="e.g. Vitamin D" placeholderTextColor={colors.textMuted} value={name} onChangeText={setName} />
+      <TextInput style={styles.input} placeholder="Dosage, e.g. 1000 IU" placeholderTextColor={colors.textMuted} value={dosage} onChangeText={setDosage} />
       <View style={styles.row}>
         <View style={styles.rowItem}>
           <Text style={styles.label}>Quantity on hand</Text>
@@ -58,7 +59,7 @@ export default function MedicationForm() {
       </View>
       <TouchableOpacity style={[styles.button, !canSubmit && styles.buttonDisabled]} onPress={handleSubmit} disabled={!canSubmit}>
         {createMedication.isPending ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.textPrimary} />
         ) : (
           <Text style={styles.buttonText}>Add medication</Text>
         )}
@@ -71,20 +72,21 @@ export default function MedicationForm() {
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 16, borderRadius: 12, backgroundColor: "#f5f5f7", gap: 12 },
-  label: { fontSize: 13, fontWeight: "600", color: "#333" },
+  card: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, gap: 12 },
+  label: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
   },
   row: { flexDirection: "row", gap: 12 },
   rowItem: { flex: 1, gap: 6 },
-  button: { backgroundColor: "#4f46e5", borderRadius: 8, paddingVertical: 12, alignItems: "center" },
+  button: { backgroundColor: colors.accent, borderRadius: radius.control, paddingVertical: 12, alignItems: "center" },
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  error: { color: "#dc2626", fontSize: 12 },
+  buttonText: { color: colors.textPrimary, fontWeight: "600" },
+  error: { color: colors.error, fontSize: 12 },
 });

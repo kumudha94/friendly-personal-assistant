@@ -7,6 +7,7 @@ import { useCycleLogs, useCreateCycleLog, useUpdateCycleLog, useDeleteCycleLog }
 import CycleSummary from "../components/CycleSummary";
 import { todayStr } from "../utils/date";
 import type { CycleLog } from "../types";
+import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
 
 function LogPeriodControl({ ongoing }: { ongoing: CycleLog | undefined }) {
   const [startDate, setStartDate] = useState(new Date());
@@ -25,7 +26,7 @@ function LogPeriodControl({ ongoing }: { ongoing: CycleLog | undefined }) {
           disabled={updateCycleLog.isPending}
         >
           {updateCycleLog.isPending ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={colors.textPrimary} />
           ) : (
             <Text style={styles.buttonText}>End period today</Text>
           )}
@@ -56,7 +57,7 @@ function LogPeriodControl({ ongoing }: { ongoing: CycleLog | undefined }) {
         disabled={createCycleLog.isPending}
       >
         {createCycleLog.isPending ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.textPrimary} />
         ) : (
           <Text style={styles.buttonText}>Log period start</Text>
         )}
@@ -74,7 +75,7 @@ function CycleHistoryRow({ log }: { log: CycleLog }) {
         {log.endDate ? ` – ${format(parseISO(log.endDate), "MMM d")}` : " (ongoing)"}
       </Text>
       <TouchableOpacity onPress={() => deleteCycleLog.mutate(log.id)}>
-        <Ionicons name="trash-outline" size={16} color="#dc2626" />
+        <Ionicons name="trash-outline" size={16} color={colors.error} />
       </TouchableOpacity>
     </View>
   );
@@ -121,33 +122,33 @@ export default function CycleScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: 16, gap: 4 },
-  headerGap: { gap: 12, marginBottom: 4 },
+  list: { padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE, gap: spacing.xs },
+  headerGap: { gap: 12, marginBottom: spacing.xs },
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  errorText: { color: "#dc2626", textAlign: "center", padding: 24 },
-  card: { padding: 16, borderRadius: 12, backgroundColor: "#f5f5f7", gap: 10 },
-  heading: { fontSize: 16, fontWeight: "700" },
-  subtext: { fontSize: 13, color: "#666" },
+  errorText: { color: colors.error, textAlign: "center", padding: spacing.lg },
+  card: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, gap: 10 },
+  heading: { fontSize: typography.body.fontSize, fontWeight: "700", color: colors.textPrimary },
+  subtext: { fontSize: 13, color: colors.textSecondary },
   dateButton: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingVertical: 10,
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
   },
-  dateText: { fontSize: 14, fontWeight: "600" },
-  button: { backgroundColor: "#4f46e5", borderRadius: 8, paddingVertical: 12, alignItems: "center" },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  sectionTitle: { fontSize: 13, fontWeight: "600", color: "#666" },
-  emptyText: { fontSize: 13, color: "#999" },
+  dateText: { fontSize: 14, fontWeight: "600", color: colors.textPrimary },
+  button: { backgroundColor: colors.accent, borderRadius: radius.control, paddingVertical: 12, alignItems: "center" },
+  buttonText: { color: colors.textPrimary, fontWeight: "600" },
+  sectionTitle: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
+  emptyText: { fontSize: 13, color: colors.textMuted },
   historyRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: colors.border,
   },
-  historyText: { fontSize: 13, color: "#111" },
+  historyText: { fontSize: 13, color: colors.textPrimary },
 });

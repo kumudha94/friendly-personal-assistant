@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import ScaleTapPicker from "./ScaleTapPicker";
 import { useCreateSymptomLog } from "../hooks/useMedications";
 import { todayStr } from "../utils/date";
+import { colors, radius, spacing, typography } from "../theme/tokens";
 
 export default function SymptomForm() {
   const [symptom, setSymptom] = useState("");
@@ -29,18 +30,19 @@ export default function SymptomForm() {
   return (
     <View style={styles.card}>
       <Text style={styles.heading}>Log a symptom</Text>
-      <TextInput style={styles.input} placeholder="e.g. Headache" value={symptom} onChangeText={setSymptom} />
+      <TextInput style={styles.input} placeholder="e.g. Headache" placeholderTextColor={colors.textMuted} value={symptom} onChangeText={setSymptom} />
       <ScaleTapPicker label="Severity" value={severity} onChange={setSeverity} />
       <TextInput
         style={styles.input}
         placeholder="Notes (optional)"
+        placeholderTextColor={colors.textMuted}
         value={notes}
         onChangeText={setNotes}
         multiline
       />
       <TouchableOpacity style={[styles.button, !canSubmit && styles.buttonDisabled]} onPress={handleSubmit} disabled={!canSubmit}>
         {createSymptomLog.isPending ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.textPrimary} />
         ) : (
           <Text style={styles.buttonText}>Log symptom</Text>
         )}
@@ -53,18 +55,19 @@ export default function SymptomForm() {
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 16, borderRadius: 12, backgroundColor: "#f5f5f7", gap: 12 },
-  heading: { fontSize: 16, fontWeight: "700" },
+  card: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, gap: 12 },
+  heading: { fontSize: typography.body.fontSize, fontWeight: "700", color: colors.textPrimary },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.control,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
   },
-  button: { backgroundColor: "#4f46e5", borderRadius: 8, paddingVertical: 12, alignItems: "center" },
+  button: { backgroundColor: colors.accent, borderRadius: radius.control, paddingVertical: 12, alignItems: "center" },
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  error: { color: "#dc2626", fontSize: 12 },
+  buttonText: { color: colors.textPrimary, fontWeight: "600" },
+  error: { color: colors.error, fontSize: 12 },
 });

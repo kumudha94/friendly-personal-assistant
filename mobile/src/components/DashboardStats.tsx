@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { colors, radius, spacing, typography } from "../theme/tokens";
 
 export default function DashboardStats({
   completedToday,
@@ -21,7 +22,7 @@ export default function DashboardStats({
       <View style={styles.divider} />
       <View style={styles.stat}>
         <View style={styles.streakValueRow}>
-          <Ionicons name="flame" size={18} color="#f97316" />
+          <Ionicons name="flame" size={18} color={colors.warning} />
           <Text style={styles.value}>{longestStreak}</Text>
         </View>
         <Text style={styles.label}>best streak</Text>
@@ -33,13 +34,13 @@ export default function DashboardStats({
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    backgroundColor: "#f5f5f7",
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radius.card,
+    padding: spacing.md,
   },
   stat: { flex: 1, alignItems: "center", gap: 2 },
-  divider: { width: 1, backgroundColor: "#e5e5e5" },
-  value: { fontSize: 20, fontWeight: "700", color: "#111" },
+  divider: { width: 1, backgroundColor: colors.border },
+  value: { fontSize: typography.sectionTitle.fontSize, fontWeight: "700", color: colors.textPrimary },
   streakValueRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  label: { fontSize: 12, color: "#999" },
+  label: { fontSize: typography.caption.fontSize, color: colors.textMuted },
 });

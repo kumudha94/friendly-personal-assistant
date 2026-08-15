@@ -109,3 +109,20 @@ export type CycleLog = {
   endDate: string | null;
   notes: string | null;
 };
+
+export type Memory = {
+  id: number;
+  text: string;
+  createdAt: string;
+};
+
+export type DigestResult = {
+  headline: string;
+  highlight: string | null;
+  sections: { label: string; detail: string }[];
+};
+
+export type EveningPlan = {
+  summary: string;
+  items: { time: string; title: string }[];
+};

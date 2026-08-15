@@ -1,4 +1,5 @@
 import { StyleSheet, View } from "react-native";
+import { colors } from "../theme/tokens";
 
 export default function WaterProgressBar({ count, target }: { count: number; target: number }) {
   const pct = target > 0 ? Math.min(count / target, 1) : 0;
@@ -13,12 +14,12 @@ const styles = StyleSheet.create({
   track: {
     height: 14,
     borderRadius: 7,
-    backgroundColor: "#e5e5e5",
+    backgroundColor: colors.surface,
     overflow: "hidden",
   },
   fill: {
     height: "100%",
-    backgroundColor: "#0ea5e9",
+    backgroundColor: colors.water,
     borderRadius: 7,
   },
 });

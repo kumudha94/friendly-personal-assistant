@@ -2,15 +2,23 @@ import * as Notifications from "expo-notifications";
 import { SchedulableTriggerInputTypes } from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Reminder, WeekDay } from "../types";
+import { getQuietHours, isWithinQuietHours } from "./settings";
 
+// Only suppresses the in-app foreground alert/sound — Milo's reminders are locally
+// scheduled OS notifications with no server push, so there's no code running to
+// intercept delivery while the app is backgrounded or killed.
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
+  handleNotification: async () => {
+    const quietHours = await getQuietHours();
+    const quiet = isWithinQuietHours(quietHours);
+    return {
+      shouldShowAlert: !quiet,
+      shouldPlaySound: !quiet,
+      shouldSetBadge: false,
+      shouldShowBanner: !quiet,
+      shouldShowList: !quiet,
+    };
+  },
 });
 
 // expo-notifications weekday convention: 1 = Sunday ... 7 = Saturday.

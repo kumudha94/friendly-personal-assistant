@@ -1,7 +1,55 @@
 import { gte, eq } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "./db";
 import { getAnthropicClient, CLAUDE_MODEL } from "./anthropic";
 import { habits, habitLogs, reminders, waterLogs, moodLogs, goals, journalEntries } from "@shared/schema";
+
+const digestResultSchema = z.object({
+  headline: z.string().min(1),
+  highlight: z.string().nullable(),
+  sections: z
+    .array(
+      z.object({
+        label: z.string().min(1),
+        detail: z.string().min(1),
+      }),
+    )
+    .max(6),
+});
+
+export type DigestResult = z.infer<typeof digestResultSchema>;
+
+const DIGEST_TOOL = {
+  name: "write_digest",
+  description: "Write a structured digest summarizing the user's recent activity.",
+  input_schema: {
+    type: "object" as const,
+    properties: {
+      headline: {
+        type: "string",
+        description: "One short, warm sentence framing the period overall (e.g. 'Solid day — 3/4 habits done, water on track.').",
+      },
+      highlight: {
+        type: "string",
+        description:
+          "One standout note worth calling out (a streak, a missed habit, low water intake, a notable mood pattern), or null if nothing stands out.",
+      },
+      sections: {
+        type: "array",
+        description: "One entry per category that has data — skip categories with nothing to report.",
+        items: {
+          type: "object",
+          properties: {
+            label: { type: "string", description: "Category name, e.g. 'Habits', 'Reminders', 'Water', 'Mood', 'Goals'." },
+            detail: { type: "string", description: "One short sentence summarizing that category, with concrete numbers where relevant." },
+          },
+          required: ["label", "detail"],
+        },
+      },
+    },
+    required: ["headline", "highlight", "sections"],
+  },
+};
 
 function daysAgoStr(n: number): string {
   const d = new Date();
@@ -33,7 +81,7 @@ async function gatherDigestData(period: "daily" | "weekly") {
   return { allHabits, recentHabitLogs, activeReminders, recentWaterLogs, recentMoodLogs, openGoals, recentJournalEntries };
 }
 
-export async function generateDigest(period: "daily" | "weekly"): Promise<string> {
+export async function generateDigest(period: "daily" | "weekly"): Promise<DigestResult> {
   const anthropic = getAnthropicClient();
   if (!anthropic) {
     throw new Error("ANTHROPIC_API_KEY is not configured on this server.");
@@ -63,11 +111,9 @@ export async function generateDigest(period: "daily" | "weekly"): Promise<string
 
   const journalSummary = data.recentJournalEntries.map((j) => `- [${j.type}, ${j.date}] ${j.content}`);
 
-  const prompt = `You are Milo, a friendly personal assistant app. Write a short, warm ${period} digest
-(2-4 sentences, plain text, no markdown headers) summarizing the user's recent activity below.
-Mention concrete numbers where relevant, call out anything that stands out (streaks, missed
-habits, low water intake, notable mood patterns), and end with one encouraging, specific note for
-what's ahead. Do not invent data that isn't listed below.
+  const prompt = `You are Milo, a friendly personal assistant app. Write a structured ${period} digest
+summarizing the user's recent activity below by calling the write_digest tool exactly once. Do
+not invent data that isn't listed below.
 
 Habits:
 ${habitSummary.join("\n") || "(none tracked)"}
@@ -89,10 +135,20 @@ ${journalSummary.join("\n") || "(none in range)"}`;
 
   const response = await anthropic.messages.create({
     model: CLAUDE_MODEL,
-    max_tokens: 400,
+    max_tokens: 500,
     messages: [{ role: "user", content: prompt }],
+    tools: [DIGEST_TOOL],
+    tool_choice: { type: "tool", name: "write_digest" },
   });
 
-  const textBlock = response.content.find((block) => block.type === "text");
-  return textBlock?.type === "text" ? textBlock.text : "";
+  const toolUse = response.content.find((block) => block.type === "tool_use");
+  if (!toolUse || toolUse.type !== "tool_use") {
+    throw new Error("Claude didn't return a structured digest.");
+  }
+
+  const parsed = digestResultSchema.safeParse(toolUse.input);
+  if (!parsed.success) {
+    throw new Error(`Couldn't parse the digest: ${parsed.error.message}`);
+  }
+  return parsed.data;
 }

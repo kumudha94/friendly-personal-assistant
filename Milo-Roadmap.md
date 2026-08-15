@@ -62,9 +62,9 @@ DB: Neon Postgres via Drizzle (same pattern as FinanceTracker, separate Neon pro
 
 ## Phase 3 — Dashboard (Week 2)
 
-- [ ] Home screen pulling: today's habits (checked/unchecked), upcoming reminders, streak summary
-- [ ] Simple, glanceable layout — this is what "Hey Milo" will open into
-- [ ] Empty states for new users
+- [x] Home screen pulling: today's habits (checked/unchecked), upcoming reminders, streak summary
+- [x] Simple, glanceable layout — this is what "Hey Milo" will open into
+- [x] Empty states for new users
 
 ---
 

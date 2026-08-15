@@ -1,18 +1,9 @@
 import { Alert, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import type { Reminder, WeekDay } from "../types";
+import type { Reminder } from "../types";
 import { useDeleteReminder, useUpdateReminder } from "../hooks/useReminders";
 import { snoozeReminder } from "../lib/notifications";
-
-const DAY_LABELS: Record<WeekDay, string> = {
-  sun: "Sun",
-  mon: "Mon",
-  tue: "Tue",
-  wed: "Wed",
-  thu: "Thu",
-  fri: "Fri",
-  sat: "Sat",
-};
+import { DAY_LABELS } from "../utils/weekday";
 
 export default function ReminderCard({ reminder }: { reminder: Reminder }) {
   const updateReminder = useUpdateReminder();

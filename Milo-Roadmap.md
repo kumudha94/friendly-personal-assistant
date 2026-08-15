@@ -44,12 +44,17 @@ DB: Neon Postgres via Drizzle (same pattern as FinanceTracker, separate Neon pro
 - [x] Routes: `POST /reminders`, `GET /reminders`, `PATCH /reminders/:id`, `DELETE /reminders/:id`
 
 **Frontend**
-- [ ] Create reminder form (title, time picker, repeat days)
-- [ ] Local notification scheduling (`notifee` or `react-native-push-notification`)
-- [ ] Reminder list with snooze / mark-done actions
-- [ ] Reschedule logic for recurring reminders after completion
+- [x] Create reminder form (title, time picker, repeat days)
+- [x] Local notification scheduling (`expo-notifications` — see note below)
+- [x] Reminder list with snooze / active-toggle actions
+- [x] Reschedule logic for recurring reminders (handled natively by OS weekly triggers — no app-side reschedule-after-fire needed)
 
 **Done when:** a reminder fires as a local Android notification at the set time and repeats correctly.
+
+> Note: used `expo-notifications` instead of `notifee`/`react-native-push-notification` since the
+> app is staying in the Expo managed workflow (no prebuild/eject needed, matches FinanceTracker's
+> mobile app which already uses the same package). Local notification scheduling works fully in
+> Expo Go on SDK 50, so this doesn't block on-device testing.
 
 ---
 

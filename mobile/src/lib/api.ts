@@ -1,4 +1,4 @@
-import type { Habit, HabitLog } from "../types";
+import type { Habit, HabitLog, Reminder, WeekDay } from "../types";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5000";
 
@@ -33,4 +33,23 @@ export function getHabitLogs() {
 
 export function setHabitLog(input: { habitId: number; date: string; completed: boolean }) {
   return request<HabitLog>("/habit_logs", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function getReminders() {
+  return request<Reminder[]>("/reminders");
+}
+
+export function createReminder(input: { title: string; time: string; repeatDays: WeekDay[] }) {
+  return request<Reminder>("/reminders", {
+    method: "POST",
+    body: JSON.stringify({ ...input, active: true }),
+  });
+}
+
+export function updateReminder(id: number, patch: Partial<Pick<Reminder, "title" | "time" | "repeatDays" | "active">>) {
+  return request<Reminder>(`/reminders/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+}
+
+export function deleteReminder(id: number) {
+  return request<void>(`/reminders/${id}`, { method: "DELETE" });
 }

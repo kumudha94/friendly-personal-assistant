@@ -14,3 +14,14 @@ export type HabitLog = {
   date: string; // "YYYY-MM-DD"
   completed: boolean;
 };
+
+export type WeekDay = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
+
+export type Reminder = {
+  id: number;
+  title: string;
+  time: string; // "HH:mm"
+  repeatDays: WeekDay[];
+  active: boolean;
+  createdAt: string;
+};

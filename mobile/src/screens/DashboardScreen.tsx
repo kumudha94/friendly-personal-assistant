@@ -7,9 +7,12 @@ import { useHabitLogs } from "../hooks/useHabitLogs";
 import { useReminders } from "../hooks/useReminders";
 import { useWaterLogs } from "../hooks/useWater";
 import { useFinanceSnapshot } from "../hooks/useFinanceLink";
+import { useKitchenSnapshot } from "../hooks/useKitchen";
 import { navigate } from "../navigation/navigationRef";
 import { todayStr } from "../utils/date";
 import { todayWeekDay } from "../utils/weekday";
+import { MEAL_SLOT_LABEL, mealLabel, nextMealSlot } from "../utils/meal";
+import type { KitchenSnapshot } from "../types";
 import DashboardReminderRow from "../components/DashboardReminderRow";
 import EmptyState from "../components/EmptyState";
 import HomeCard from "../components/HomeCard";
@@ -27,12 +30,23 @@ function greeting(name: string): string {
   return name ? `${timeGreeting}, ${name}` : timeGreeting;
 }
 
+function kitchenStatusText(snapshot: KitchenSnapshot | undefined): string {
+  if (!snapshot) return "Loading...";
+  if (!snapshot.configured) return "Not connected";
+  const slot = nextMealSlot();
+  if (!slot) return "Today's meals are done";
+  const entry = snapshot.meals.find((m) => m.slot === slot);
+  const label = mealLabel(entry);
+  return `Next: ${MEAL_SLOT_LABEL[slot]} — ${label ?? "nothing planned yet"}`;
+}
+
 export default function DashboardScreen() {
   const habitsQuery = useHabits();
   const logsQuery = useHabitLogs();
   const remindersQuery = useReminders();
   const waterQuery = useWaterLogs();
   const financeQuery = useFinanceSnapshot();
+  const kitchenQuery = useKitchenSnapshot(todayStr());
   const [refreshing, setRefreshing] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [planSheetOpen, setPlanSheetOpen] = useState(false);
@@ -108,6 +122,7 @@ export default function DashboardScreen() {
       remindersQuery.refetch(),
       waterQuery.refetch(),
       financeQuery.refetch(),
+      kitchenQuery.refetch(),
     ]);
     setRefreshing(false);
   };
@@ -185,9 +200,9 @@ export default function DashboardScreen() {
         <HomeCard
           icon="restaurant-outline"
           title="My Kitchen"
-          status="Coming soon"
+          status={kitchenStatusText(kitchenQuery.data)}
           gradient
-          disabled
+          onPress={() => navigate("More", { screen: "Kitchen" })}
         />
       </View>
 

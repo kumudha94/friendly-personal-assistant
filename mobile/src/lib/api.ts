@@ -8,6 +8,7 @@ import type {
   HabitLog,
   JournalEntry,
   JournalType,
+  KitchenSnapshot,
   Medication,
   MedicationLog,
   Memory,
@@ -21,19 +22,107 @@ import type {
   WeightUnit,
 } from "../types";
 
+import { getAccessToken, getRefreshToken, setAccessToken, clearTokens } from "./authStorage";
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5000";
 
+// Login lives on FinanceTracker now — one shared identity across FinanceTracker,
+// KitchenPlanner, and Milo. See project notes for why.
+const AUTH_API_URL = process.env.EXPO_PUBLIC_AUTH_API_URL ?? "https://financetracker-ckvf.onrender.com";
+
+let onUnauthorized: (() => void) | null = null;
+
+// Registered once by App.tsx, so a 401 anywhere (expired/invalid session) can kick the
+// user back to the login screen without every call site needing to handle it.
+export function setUnauthorizedHandler(fn: (() => void) | null): void {
+  onUnauthorized = fn;
+}
+
+// FinanceTracker's access tokens are short-lived (15 min) by design, so a plain 401 doesn't
+// necessarily mean "log out" — try to mint a fresh access token from the stored refresh
+// token first, same retry-once pattern FinanceTracker's own mobile client uses.
+async function refreshAccessToken(): Promise<string | null> {
+  const refreshToken = await getRefreshToken();
+  if (!refreshToken) return null;
+  try {
+    const res = await fetch(`${AUTH_API_URL}/api/auth/refresh-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.accessToken) return null;
+    await setAccessToken(data.accessToken);
+    return data.accessToken as string;
+  } catch {
+    return null;
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...init,
-  });
+  const token = await getAccessToken();
+
+  const doFetch = (authToken: string | null) =>
+    fetch(`${API_URL}${path}`, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        ...init?.headers,
+      },
+    });
+
+  let res = await doFetch(token);
+
+  if (res.status === 401 || res.status === 403) {
+    const newToken = token ? await refreshAccessToken() : null;
+    if (newToken) {
+      res = await doFetch(newToken);
+    } else {
+      await clearTokens();
+      onUnauthorized?.();
+    }
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message ?? `Request failed with ${res.status}`);
   }
   if (res.status === 204) return undefined as T;
   return res.json();
+}
+
+export async function requestOtp(email: string): Promise<void> {
+  const res = await fetch(`${AUTH_API_URL}/api/auth/request-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    // FinanceTracker's request-otp requires `username`, but only actually uses it if this
+    // is a brand-new account — for the already-existing shared account it's ignored.
+    body: JSON.stringify({ email, username: email.split("@")[0] }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Couldn't send the code.");
+  }
+}
+
+export type AuthUser = { id: number; name: string; email: string };
+
+export async function verifyOtp(
+  email: string,
+  otp: string
+): Promise<{ accessToken: string; refreshToken: string; user: AuthUser }> {
+  const res = await fetch(`${AUTH_API_URL}/api/auth/verify-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, otp }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(body.error ?? "That code didn't work.");
+  }
+  return body;
 }
 
 export function getHabits() {
@@ -238,4 +327,8 @@ export function unlinkFinance() {
 
 export function getFinanceSnapshot() {
   return request<FinanceSnapshot>("/finance_snapshot");
+}
+
+export function getKitchenSnapshot(date: string) {
+  return request<KitchenSnapshot>(`/kitchen_snapshot?date=${date}`);
 }

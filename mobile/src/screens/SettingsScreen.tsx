@@ -10,6 +10,7 @@ import {
   type Profile,
   type QuietHours,
 } from "../lib/settings";
+import { useAuth } from "../contexts/AuthContext";
 import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
 
 function parseTime(value: string): Date {
@@ -24,6 +25,7 @@ function formatTime(date: Date): string {
 }
 
 export default function SettingsScreen() {
+  const { user, logout } = useAuth();
   const [profile, setProfileState] = useState<Profile | null>(null);
   const [nameDraft, setNameDraft] = useState("");
   const [nameJustSaved, setNameJustSaved] = useState(false);
@@ -60,6 +62,20 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.heading}>Account</Text>
+      <View style={styles.card}>
+        <Text style={styles.label}>Signed in as</Text>
+        <Text style={styles.subheading}>{user?.email}</Text>
+        <Text style={styles.subheading}>
+          Shared login with FinanceTracker and KitchenPlanner — manage the account itself
+          from FinanceTracker.
+        </Text>
+        <TouchableOpacity style={styles.logoutRow} onPress={() => logout()}>
+          <Ionicons name="log-out-outline" size={18} color={colors.textPrimary} />
+          <Text style={styles.logoutText}>Log out</Text>
+        </TouchableOpacity>
+      </View>
+
       <Text style={styles.heading}>Preferences</Text>
       <View style={styles.card}>
         <Text style={styles.label}>Your name</Text>
@@ -179,4 +195,6 @@ const styles = StyleSheet.create({
   timeValue: { fontSize: 18, fontWeight: "700", color: colors.textPrimary },
   noteCard: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.elevatedSurface },
   noteText: { fontSize: typography.caption.fontSize, color: colors.textMuted, lineHeight: 18 },
+  logoutRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs, marginTop: spacing.xs },
+  logoutText: { fontSize: 14, fontWeight: "600", color: colors.textPrimary },
 });

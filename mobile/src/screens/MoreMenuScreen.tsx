@@ -24,6 +24,7 @@ const MENU_ITEMS: {
   { route: "Settings", icon: "settings", label: "Settings", description: "Quiet hours and notification controls" },
   { route: "Memory", icon: "bulb", label: "Memory", description: "Things Milo remembers about you" },
   { route: "Finance", icon: "wallet", label: "Finance", description: "Upcoming bills and balance from FinanceTracker" },
+  { route: "Kitchen", icon: "restaurant", label: "Kitchen", description: "Today's meal plan from KitchenPlanner" },
 ];
 
 export default function MoreMenuScreen({ navigation }: Props) {

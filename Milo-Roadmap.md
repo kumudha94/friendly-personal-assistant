@@ -92,10 +92,12 @@ Android OEMs). Complete Phases 1-3 first, then spike this before committing furt
 
 ## Phase 5 — Play Store Internal Testing (Week 3)
 
-- [ ] Build signed AAB
-- [ ] Write privacy policy (on-device audio processing, no storage/transmission)
-- [ ] Set up Play Console internal/closed testing track
-- [ ] Upload, add yourself as tester, verify install flow
+- [x] Build signed AAB
+- [x] Write privacy policy (on-device audio processing, no storage/transmission)
+- [x] Set up Play Console internal/closed testing track
+- [x] Upload, add yourself as tester, verify install flow
+
+**Deployed (2026-08-15):** Live on Play Store internal testing.
 
 ---
 
@@ -130,7 +132,8 @@ Group C — Intelligence
 Group D — Polish & Integration
 - [ ] Home screen widget for quick-log
 - [ ] Offline-first with sync
-- [ ] Cross-link with FinanceTracker / KitchenPlanner
+- [x] Cross-link with FinanceTracker — read-only, OTP-linked (FinanceTracker is multi-user); Dashboard's "My Finance" card + Finance screen show balance and bills due this month
+- [x] Cross-link with KitchenPlanner — read-only, no linking needed (KitchenPlanner is single-tenant); Dashboard's "My Kitchen" card shows the next upcoming meal (time-of-day aware — afternoon shows dinner, not lunch) with recipe details when one's attached; Kitchen screen shows all of today's meal slots
 
 ---
 

@@ -12,3 +12,7 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
+      - key: KITCHEN_DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false

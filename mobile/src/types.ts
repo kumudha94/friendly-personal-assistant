@@ -137,3 +137,24 @@ export type FinanceBillItem = {
 export type FinanceSnapshot =
   | { linked: false }
   | { linked: true; email: string; balance: number; totalDue: number; items: FinanceBillItem[] };
+
+export type KitchenMealSlot = "breakfast" | "lunch" | "snack" | "dinner";
+
+export type KitchenRecipe = {
+  id: number;
+  name: string;
+  ingredients: { name: string; quantity: string }[];
+  prepTimeMinutes: number | null;
+  servings: number;
+};
+
+export type KitchenMealEntry = {
+  slot: KitchenMealSlot;
+  note: string | null;
+  recipeNameSnapshot: string | null;
+  recipe: KitchenRecipe | null;
+};
+
+export type KitchenSnapshot =
+  | { configured: false }
+  | { configured: true; date: string; meals: KitchenMealEntry[] };

@@ -34,11 +34,17 @@ import { generateDigest } from "./digest";
 import { parseQuickAdd } from "./quickAdd";
 import { planEvening } from "./planEvening";
 import { requestOtp, verifyOtp, unlink as unlinkFinance, getSnapshot as getFinanceSnapshot } from "./financeLink";
+import { getKitchenSnapshot } from "./kitchenDb";
 import { asyncHandler } from "./asyncHandler";
+import { authenticateToken } from "./authMiddleware";
 
 const FK_VIOLATION = "23503";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Login happens against FinanceTracker (shared identity across FinanceTracker/
+  // KitchenPlanner/Milo — see project notes); this backend only verifies the token.
+  app.use(authenticateToken);
+
   // Habits
   app.post(
     "/habits",
@@ -452,6 +458,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     asyncHandler(async (_req, res) => {
       try {
         res.json(await getFinanceSnapshot());
+      } catch (err: any) {
+        res.status(502).json({ message: err.message });
+      }
+    }),
+  );
+
+  // KitchenPlanner cross-link (read-only, single-tenant — no linking needed)
+  app.get(
+    "/kitchen_snapshot",
+    asyncHandler(async (req, res) => {
+      const date = typeof req.query.date === "string" ? req.query.date : undefined;
+      if (!date) {
+        return res.status(400).json({ message: "date is required" });
+      }
+      try {
+        res.json(await getKitchenSnapshot(date));
       } catch (err: any) {
         res.status(502).json({ message: err.message });
       }

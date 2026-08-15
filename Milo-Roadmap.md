@@ -4,6 +4,8 @@
 Stack: React Native (Android) + Express backend, deployed via Render + Play Store internal testing.
 Wake word: **"Hey Milo"** (Picovoice Porcupine)
 
+Mobile app runs on Expo SDK 54 (React Native 0.81, React 19) as of 2026-08-15.
+
 ---
 
 ## Phase 0 — Setup (Day 0-1)

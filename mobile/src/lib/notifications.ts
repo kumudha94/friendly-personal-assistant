@@ -1,4 +1,5 @@
 import * as Notifications from "expo-notifications";
+import { SchedulableTriggerInputTypes } from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Reminder, WeekDay } from "../types";
 
@@ -7,6 +8,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -75,14 +78,22 @@ export async function scheduleReminderNotifications(reminder: Reminder) {
   if (reminder.repeatDays.length === 0) {
     const id = await Notifications.scheduleNotificationAsync({
       content: { title: "Milo reminder", body: reminder.title },
-      trigger: nextOneOffDate(hour, minute),
+      trigger: {
+        type: SchedulableTriggerInputTypes.DATE,
+        date: nextOneOffDate(hour, minute),
+      },
     });
     ids.push(id);
   } else {
     for (const day of reminder.repeatDays) {
       const id = await Notifications.scheduleNotificationAsync({
         content: { title: "Milo reminder", body: reminder.title },
-        trigger: { weekday: WEEKDAY_INDEX[day], hour, minute, repeats: true },
+        trigger: {
+          type: SchedulableTriggerInputTypes.WEEKLY,
+          weekday: WEEKDAY_INDEX[day],
+          hour,
+          minute,
+        },
       });
       ids.push(id);
     }
@@ -94,6 +105,10 @@ export async function scheduleReminderNotifications(reminder: Reminder) {
 export async function snoozeReminder(reminder: Reminder, minutes: number) {
   await Notifications.scheduleNotificationAsync({
     content: { title: "Milo reminder (snoozed)", body: reminder.title },
-    trigger: { seconds: minutes * 60, repeats: false },
+    trigger: {
+      type: SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: minutes * 60,
+      repeats: false,
+    },
   });
 }

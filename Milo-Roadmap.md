@@ -28,10 +28,10 @@ DB: Neon Postgres via Drizzle (same pattern as FinanceTracker, separate Neon pro
 - [x] Routes: `POST /habit_logs` (check-off), `GET /habit_logs?date=`
 
 **Frontend**
-- [ ] Create habit form (name, frequency picker, target)
-- [ ] Habit list view with today's check-off toggle
-- [ ] Streak calculation (consecutive completed days)
-- [ ] Weekly view (7-day grid per habit)
+- [x] Create habit form (name, frequency picker, target)
+- [x] Habit list view with today's check-off toggle
+- [x] Streak calculation (consecutive completed days)
+- [x] Weekly view (7-day grid per habit)
 
 **Done when:** you can create a habit, check it off daily, and see a streak count.
 

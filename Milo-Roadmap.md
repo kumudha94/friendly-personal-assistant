@@ -74,6 +74,11 @@ Deliberately last — everything above is proven CRUD/notification work; this is
 genuinely novel, highest-risk piece (foreground audio service + battery behavior across
 Android OEMs). Complete Phases 1-3 first, then spike this before committing further.
 
+> **Blocked (2026-08-15):** Picovoice Console is gating the account (`info@dreamdaycrew.com`)
+> behind manual commercial-use review — "Home" and the model consoles (where the AccessKey lives)
+> are inaccessible until Picovoice's team approves it, on an unknown timeline. Nothing to do here
+> until that clears; no workaround exists. Revisit once approved.
+
 - [ ] Train custom wake word "Milo" on Picovoice Console — download `.ppn` model
 - [ ] Integrate `@picovoice/porcupine-react-native`
 - [ ] Android foreground service with persistent low-priority notification

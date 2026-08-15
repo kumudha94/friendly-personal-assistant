@@ -18,6 +18,8 @@ import {
   insertJournalEntrySchema,
   insertMoodLogSchema,
 } from "@shared/schema";
+import { generateDigest } from "./digest";
+import { parseQuickAdd } from "./quickAdd";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Habits
@@ -211,6 +213,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { date } = req.query;
     const query = db.select().from(moodLogs);
     res.json(date ? await query.where(eq(moodLogs.date, String(date))) : await query);
+  });
+
+  // Claude-powered digest
+  app.get("/digest", async (req, res) => {
+    const period = req.query.period === "weekly" ? "weekly" : "daily";
+    try {
+      const text = await generateDigest(period);
+      res.json({ text });
+    } catch (err: any) {
+      res.status(502).json({ message: err.message });
+    }
+  });
+
+  // Natural language quick-add
+  app.post("/quick_add", async (req, res) => {
+    const { text } = req.body;
+    if (!text || typeof text !== "string") {
+      return res.status(400).json({ message: "text is required" });
+    }
+    try {
+      const result = await parseQuickAdd(text);
+
+      if (result.type === "reminder") {
+        const [reminder] = await db
+          .insert(reminders)
+          .values({ title: result.title, time: result.time, repeatDays: result.repeatDays, active: true })
+          .returning();
+        return res.status(201).json({ type: "reminder", item: reminder });
+      }
+
+      if (result.type === "habit") {
+        const [habit] = await db
+          .insert(habits)
+          .values({ name: result.title, frequency: result.frequency })
+          .returning();
+        return res.status(201).json({ type: "habit", item: habit });
+      }
+
+      const [goal] = await db
+        .insert(goals)
+        .values({ title: result.title, targetDate: result.targetDate })
+        .returning();
+      return res.status(201).json({ type: "goal", item: goal });
+    } catch (err: any) {
+      res.status(502).json({ message: err.message });
+    }
   });
 
   return createServer(app);

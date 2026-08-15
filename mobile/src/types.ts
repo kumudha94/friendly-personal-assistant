@@ -61,3 +61,8 @@ export type MoodLog = {
   sleepHours: number;
   notes: string | null;
 };
+
+export type QuickAddResult =
+  | { type: "reminder"; item: Reminder }
+  | { type: "habit"; item: Habit }
+  | { type: "goal"; item: Goal };

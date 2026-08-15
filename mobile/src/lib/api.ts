@@ -1,4 +1,15 @@
-import type { Goal, Habit, HabitLog, JournalEntry, JournalType, MoodLog, Reminder, WaterLog, WeekDay } from "../types";
+import type {
+  Goal,
+  Habit,
+  HabitLog,
+  JournalEntry,
+  JournalType,
+  MoodLog,
+  QuickAddResult,
+  Reminder,
+  WaterLog,
+  WeekDay,
+} from "../types";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5000";
 
@@ -107,4 +118,12 @@ export function setMoodLog(input: {
   notes?: string | null;
 }) {
   return request<MoodLog>("/mood_logs", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function getDigest(period: "daily" | "weekly") {
+  return request<{ text: string }>(`/digest?period=${period}`);
+}
+
+export function quickAdd(text: string) {
+  return request<QuickAddResult>("/quick_add", { method: "POST", body: JSON.stringify({ text }) });
 }

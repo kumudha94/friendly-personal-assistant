@@ -111,14 +111,16 @@ Group B — Planning
 
 Group C — Intelligence
 - [x] Insights dashboard (correlations: water↔mood, sleep↔energy, streak↔mood) — new Wellness tab, "Insights" sub-view. "Streak↔mood" implemented as daily habit-completion-count↔mood (a historical per-day streak reconstruction wasn't worth the complexity for a personal app)
-- [ ] Claude-powered daily/weekly digest — on hold, no live Anthropic key available (see note below)
-- [ ] Natural language quick-add ("remind me to call mom at 6") — on hold, same reason
+- [x] Claude-powered daily/weekly digest — `GET /digest?period=daily|weekly`, new "Digest" screen under More
+- [x] Natural language quick-add ("remind me to call mom at 6") — `POST /quick_add`, new "Quick add" screen under More, uses Claude tool-use to classify into a reminder/habit/goal
 - [ ] Follow-up voice command after wake word ("log water", "how am I doing") — blocked on Phase 4, which is on hold
 
-> Note (2026-08-15): FinanceTracker's `.env` has a working `OPENAI_API_KEY` but no live
-> `ANTHROPIC_API_KEY` — the `@anthropic-ai/sdk` dependency and code path exist there but the env
-> var was never actually set. The digest and quick-add items need a real LLM key to build; revisit
-> once one is available.
+> Note (2026-08-15): live `ANTHROPIC_API_KEY` provided and wired in (`.env`, gitignored, not
+> FinanceTracker's — this is Milo's own key). **The Render dashboard still needs this same key
+> added as an environment variable** for the digest/quick-add routes to work in production; local
+> dev and the routes' own error handling both already account for it being briefly unset there
+> (`getAnthropicClient()` returns null instead of crashing server startup, and the two routes
+> return a 502 with a clear message rather than taking the whole backend down).
 
 Group D — Polish & Integration
 - [ ] Home screen widget for quick-log

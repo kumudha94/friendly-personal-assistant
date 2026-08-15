@@ -15,6 +15,8 @@ const MENU_ITEMS: {
   { route: "Goals", icon: "flag", label: "Goals", description: "Track goals, optionally linked to a habit" },
   { route: "Journal", icon: "book", label: "Journal", description: "Daily notes and weekly/monthly reviews" },
   { route: "Wellness", icon: "heart", label: "Wellness", description: "Mood check-ins and insights" },
+  { route: "Digest", icon: "sparkles", label: "Digest", description: "Claude-generated summary of recent activity" },
+  { route: "QuickAdd", icon: "flash", label: "Quick add", description: "Add a reminder, habit, or goal in plain English" },
 ];
 
 export default function MoreMenuScreen({ navigation }: Props) {

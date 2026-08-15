@@ -32,3 +32,23 @@ export type WaterLog = {
   count: number;
   target: number;
 };
+
+export type Goal = {
+  id: number;
+  title: string;
+  description: string | null;
+  habitId: number | null;
+  targetDate: string | null; // "YYYY-MM-DD"
+  completed: boolean;
+  createdAt: string;
+};
+
+export type JournalType = "daily" | "weekly" | "monthly";
+
+export type JournalEntry = {
+  id: number;
+  type: JournalType;
+  date: string; // "YYYY-MM-DD"
+  content: string;
+  createdAt: string;
+};

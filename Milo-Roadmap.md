@@ -105,9 +105,9 @@ Group A — Tracking
 - [ ] Menstrual cycle tracking
 
 Group B — Planning
-- [ ] Goals module (linked to habits)
-- [ ] Journaling (daily notes)
-- [ ] Weekly/monthly review prompts
+- [x] Goals module (linked to habits) — new Goals tab, optional habit link shows that habit's streak
+- [x] Journaling (daily notes) — new Journal tab, doubles as weekly/monthly review via a type selector
+- [x] Weekly/monthly review prompts — static prompt text shown per type in the Journal composer (not separate structured Q&A storage)
 
 Group C — Intelligence
 - [ ] Insights dashboard (correlations: water↔mood, sleep↔energy, streak↔mood)

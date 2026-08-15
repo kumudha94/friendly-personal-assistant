@@ -32,10 +32,33 @@ export const waterLogs = pgTable("water_logs", {
   target: integer("target").notNull().default(8),
 });
 
+export const goals = pgTable("goals", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  habitId: integer("habit_id").references(() => habits.id),
+  targetDate: date("target_date"),
+  completed: boolean("completed").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const journalEntries = pgTable("journal_entries", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // "daily" | "weekly" | "monthly"
+  date: date("date").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const insertHabitSchema = createInsertSchema(habits).omit({ id: true, createdAt: true });
 export const insertHabitLogSchema = createInsertSchema(habitLogs).omit({ id: true });
 export const insertReminderSchema = createInsertSchema(reminders).omit({ id: true, createdAt: true });
 export const insertWaterLogSchema = createInsertSchema(waterLogs).omit({ id: true });
+export const insertGoalSchema = createInsertSchema(goals).omit({ id: true, createdAt: true });
+export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit({
+  id: true,
+  createdAt: true,
+});
 
 export type Habit = typeof habits.$inferSelect;
 export type InsertHabit = typeof habits.$inferInsert;
@@ -45,3 +68,7 @@ export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = typeof reminders.$inferInsert;
 export type WaterLog = typeof waterLogs.$inferSelect;
 export type InsertWaterLog = typeof waterLogs.$inferInsert;
+export type Goal = typeof goals.$inferSelect;
+export type InsertGoal = typeof goals.$inferInsert;
+export type JournalEntry = typeof journalEntries.$inferSelect;
+export type InsertJournalEntry = typeof journalEntries.$inferInsert;

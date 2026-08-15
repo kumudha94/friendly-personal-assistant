@@ -1,4 +1,4 @@
-import type { Habit, HabitLog, Reminder, WaterLog, WeekDay } from "../types";
+import type { Goal, Habit, HabitLog, JournalEntry, JournalType, Reminder, WaterLog, WeekDay } from "../types";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5000";
 
@@ -60,4 +60,37 @@ export function getWaterLogs() {
 
 export function setWaterLog(input: { date: string; count: number; target: number }) {
   return request<WaterLog>("/water_logs", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function getGoals() {
+  return request<Goal[]>("/goals");
+}
+
+export function createGoal(input: {
+  title: string;
+  description?: string;
+  habitId?: number | null;
+  targetDate?: string | null;
+}) {
+  return request<Goal>("/goals", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function updateGoal(id: number, patch: Partial<Pick<Goal, "title" | "description" | "habitId" | "targetDate" | "completed">>) {
+  return request<Goal>(`/goals/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+}
+
+export function deleteGoal(id: number) {
+  return request<void>(`/goals/${id}`, { method: "DELETE" });
+}
+
+export function getJournalEntries() {
+  return request<JournalEntry[]>("/journal_entries");
+}
+
+export function createJournalEntry(input: { type: JournalType; date: string; content: string }) {
+  return request<JournalEntry>("/journal_entries", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function deleteJournalEntry(id: number) {
+  return request<void>(`/journal_entries/${id}`, { method: "DELETE" });
 }

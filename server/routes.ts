@@ -7,10 +7,14 @@ import {
   habitLogs,
   reminders,
   waterLogs,
+  goals,
+  journalEntries,
   insertHabitSchema,
   insertHabitLogSchema,
   insertReminderSchema,
   insertWaterLogSchema,
+  insertGoalSchema,
+  insertJournalEntrySchema,
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -118,6 +122,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { date } = req.query;
     const query = db.select().from(waterLogs);
     res.json(date ? await query.where(eq(waterLogs.date, String(date))) : await query);
+  });
+
+  // Goals
+  app.post("/goals", async (req, res) => {
+    const parsed = insertGoalSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.message });
+    const [goal] = await db.insert(goals).values(parsed.data).returning();
+    res.status(201).json(goal);
+  });
+
+  app.get("/goals", async (_req, res) => {
+    res.json(await db.select().from(goals));
+  });
+
+  app.patch("/goals/:id", async (req, res) => {
+    const [goal] = await db
+      .update(goals)
+      .set(req.body)
+      .where(eq(goals.id, Number(req.params.id)))
+      .returning();
+    if (!goal) return res.status(404).json({ message: "Goal not found" });
+    res.json(goal);
+  });
+
+  app.delete("/goals/:id", async (req, res) => {
+    await db.delete(goals).where(eq(goals.id, Number(req.params.id)));
+    res.status(204).end();
+  });
+
+  // Journal entries
+  app.post("/journal_entries", async (req, res) => {
+    const parsed = insertJournalEntrySchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.message });
+    const [entry] = await db.insert(journalEntries).values(parsed.data).returning();
+    res.status(201).json(entry);
+  });
+
+  app.get("/journal_entries", async (req, res) => {
+    const { type } = req.query;
+    const query = db.select().from(journalEntries);
+    res.json(type ? await query.where(eq(journalEntries.type, String(type))) : await query);
+  });
+
+  app.patch("/journal_entries/:id", async (req, res) => {
+    const [entry] = await db
+      .update(journalEntries)
+      .set(req.body)
+      .where(eq(journalEntries.id, Number(req.params.id)))
+      .returning();
+    if (!entry) return res.status(404).json({ message: "Journal entry not found" });
+    res.json(entry);
+  });
+
+  app.delete("/journal_entries/:id", async (req, res) => {
+    await db.delete(journalEntries).where(eq(journalEntries.id, Number(req.params.id)));
+    res.status(204).end();
   });
 
   return createServer(app);

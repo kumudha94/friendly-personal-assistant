@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, boolean, date, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, real, boolean, date, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 
 export const habits = pgTable("habits", {
@@ -50,6 +50,15 @@ export const journalEntries = pgTable("journal_entries", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const moodLogs = pgTable("mood_logs", {
+  id: serial("id").primaryKey(),
+  date: date("date").notNull(),
+  moodScale: integer("mood_scale").notNull(), // 1-5
+  energyLevel: integer("energy_level").notNull(), // 1-5
+  sleepHours: real("sleep_hours").notNull(),
+  notes: text("notes"),
+});
+
 export const insertHabitSchema = createInsertSchema(habits).omit({ id: true, createdAt: true });
 export const insertHabitLogSchema = createInsertSchema(habitLogs).omit({ id: true });
 export const insertReminderSchema = createInsertSchema(reminders).omit({ id: true, createdAt: true });
@@ -59,6 +68,7 @@ export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit(
   id: true,
   createdAt: true,
 });
+export const insertMoodLogSchema = createInsertSchema(moodLogs).omit({ id: true });
 
 export type Habit = typeof habits.$inferSelect;
 export type InsertHabit = typeof habits.$inferInsert;
@@ -72,3 +82,5 @@ export type Goal = typeof goals.$inferSelect;
 export type InsertGoal = typeof goals.$inferInsert;
 export type JournalEntry = typeof journalEntries.$inferSelect;
 export type InsertJournalEntry = typeof journalEntries.$inferInsert;
+export type MoodLog = typeof moodLogs.$inferSelect;
+export type InsertMoodLog = typeof moodLogs.$inferInsert;

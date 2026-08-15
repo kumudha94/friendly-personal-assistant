@@ -9,12 +9,14 @@ import {
   waterLogs,
   goals,
   journalEntries,
+  moodLogs,
   insertHabitSchema,
   insertHabitLogSchema,
   insertReminderSchema,
   insertWaterLogSchema,
   insertGoalSchema,
   insertJournalEntrySchema,
+  insertMoodLogSchema,
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -178,6 +180,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/journal_entries/:id", async (req, res) => {
     await db.delete(journalEntries).where(eq(journalEntries.id, Number(req.params.id)));
     res.status(204).end();
+  });
+
+  // Mood logs
+  app.post("/mood_logs", async (req, res) => {
+    const parsed = insertMoodLogSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.message });
+    const existing = await db
+      .select()
+      .from(moodLogs)
+      .where(eq(moodLogs.date, parsed.data.date));
+    if (existing.length > 0) {
+      const [log] = await db
+        .update(moodLogs)
+        .set({
+          moodScale: parsed.data.moodScale,
+          energyLevel: parsed.data.energyLevel,
+          sleepHours: parsed.data.sleepHours,
+          notes: parsed.data.notes,
+        })
+        .where(eq(moodLogs.id, existing[0].id))
+        .returning();
+      return res.json(log);
+    }
+    const [log] = await db.insert(moodLogs).values(parsed.data).returning();
+    res.status(201).json(log);
+  });
+
+  app.get("/mood_logs", async (req, res) => {
+    const { date } = req.query;
+    const query = db.select().from(moodLogs);
+    res.json(date ? await query.where(eq(moodLogs.date, String(date))) : await query);
   });
 
   return createServer(app);

@@ -98,8 +98,8 @@ Android OEMs). Complete Phases 1-3 first, then spike this before committing furt
 
 Group A — Tracking
 - [x] Water intake (quick-tap logging, daily target, progress bar) — new Water tab + compact Dashboard widget
-- [ ] Mood/health check-in (scale + energy + sleep + notes)
-- [ ] Sleep log
+- [x] Mood/health check-in (scale + energy + sleep + notes) — new Wellness tab, "Check-in" sub-view
+- [x] Sleep log — folded into the mood check-in's `sleepHours` field rather than a separate tracker (the check-in bullet already listed "sleep" as one of its fields)
 - [ ] Weight/body metrics
 - [ ] Medication/symptom tracker + refill alerts
 - [ ] Menstrual cycle tracking
@@ -110,10 +110,15 @@ Group B — Planning
 - [x] Weekly/monthly review prompts — static prompt text shown per type in the Journal composer (not separate structured Q&A storage)
 
 Group C — Intelligence
-- [ ] Insights dashboard (correlations: water↔mood, sleep↔energy, streak↔mood)
-- [ ] Claude-powered daily/weekly digest
-- [ ] Natural language quick-add ("remind me to call mom at 6")
-- [ ] Follow-up voice command after wake word ("log water", "how am I doing")
+- [x] Insights dashboard (correlations: water↔mood, sleep↔energy, streak↔mood) — new Wellness tab, "Insights" sub-view. "Streak↔mood" implemented as daily habit-completion-count↔mood (a historical per-day streak reconstruction wasn't worth the complexity for a personal app)
+- [ ] Claude-powered daily/weekly digest — on hold, no live Anthropic key available (see note below)
+- [ ] Natural language quick-add ("remind me to call mom at 6") — on hold, same reason
+- [ ] Follow-up voice command after wake word ("log water", "how am I doing") — blocked on Phase 4, which is on hold
+
+> Note (2026-08-15): FinanceTracker's `.env` has a working `OPENAI_API_KEY` but no live
+> `ANTHROPIC_API_KEY` — the `@anthropic-ai/sdk` dependency and code path exist there but the env
+> var was never actually set. The digest and quick-add items need a real LLM key to build; revisit
+> once one is available.
 
 Group D — Polish & Integration
 - [ ] Home screen widget for quick-log

@@ -1,4 +1,4 @@
-import type { Goal, Habit, HabitLog, JournalEntry, JournalType, Reminder, WaterLog, WeekDay } from "../types";
+import type { Goal, Habit, HabitLog, JournalEntry, JournalType, MoodLog, Reminder, WaterLog, WeekDay } from "../types";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5000";
 
@@ -93,4 +93,18 @@ export function createJournalEntry(input: { type: JournalType; date: string; con
 
 export function deleteJournalEntry(id: number) {
   return request<void>(`/journal_entries/${id}`, { method: "DELETE" });
+}
+
+export function getMoodLogs() {
+  return request<MoodLog[]>("/mood_logs");
+}
+
+export function setMoodLog(input: {
+  date: string;
+  moodScale: number;
+  energyLevel: number;
+  sleepHours: number;
+  notes?: string | null;
+}) {
+  return request<MoodLog>("/mood_logs", { method: "POST", body: JSON.stringify(input) });
 }

@@ -52,3 +52,12 @@ export type JournalEntry = {
   content: string;
   createdAt: string;
 };
+
+export type MoodLog = {
+  id: number;
+  date: string; // "YYYY-MM-DD"
+  moodScale: number; // 1-5
+  energyLevel: number; // 1-5
+  sleepHours: number;
+  notes: string | null;
+};

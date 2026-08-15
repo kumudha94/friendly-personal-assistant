@@ -7,6 +7,7 @@ import RemindersScreen from "../screens/RemindersScreen";
 import WaterScreen from "../screens/WaterScreen";
 import GoalsScreen from "../screens/GoalsScreen";
 import JournalScreen from "../screens/JournalScreen";
+import WellnessScreen from "../screens/WellnessScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -17,6 +18,7 @@ const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Water: "water",
   Goals: "flag",
   Journal: "book",
+  Wellness: "heart",
 };
 
 export default function RootNavigator() {
@@ -35,6 +37,7 @@ export default function RootNavigator() {
         <Tab.Screen name="Water" component={WaterScreen} />
         <Tab.Screen name="Goals" component={GoalsScreen} />
         <Tab.Screen name="Journal" component={JournalScreen} />
+        <Tab.Screen name="Wellness" component={WellnessScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );

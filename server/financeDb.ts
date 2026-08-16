@@ -10,6 +10,11 @@ function getFinanceSql() {
   return neon(process.env.FINANCE_DATABASE_URL);
 }
 
+// "What's due" no longer lives here — it moved to financeApi.ts, which calls FinanceTracker's
+// own /api/integrations/milo/bills-summary endpoint instead of re-deriving cycle/status rules
+// against these raw tables (see that endpoint's comment for why the old direct-SQL version was
+// wrong). Balance is a simple, unambiguous sum with no business logic to get wrong, so it stays
+// a direct read here.
 export async function getAccountBalance(userId: number): Promise<number> {
   const sql = getFinanceSql();
   const rows = await sql`
@@ -18,68 +23,4 @@ export async function getAccountBalance(userId: number): Promise<number> {
     WHERE user_id = ${userId} AND type IN ('bank', 'wallet')
   `;
   return Number(rows[0]?.total ?? 0);
-}
-
-export type FinanceBillItem = {
-  label: string;
-  amount: number;
-  dueDate: string;
-  kind: "bill" | "insurance" | "loan";
-};
-
-export async function getBillsDueThisMonth(userId: number): Promise<FinanceBillItem[]> {
-  const sql = getFinanceSql();
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
-
-  const [bills, insurance, loans] = await Promise.all([
-    sql`
-      SELECT sp.name AS label, po.amount AS occurrence_amount, sp.amount AS scheduled_amount, po.due_date
-      FROM payment_occurrences po
-      JOIN scheduled_payments sp ON sp.id = po.scheduled_payment_id
-      WHERE sp.user_id = ${userId} AND po.month = ${month} AND po.year = ${year} AND po.status = 'pending'
-    `,
-    sql`
-      SELECT i.name AS label, ip.amount, ip.due_date
-      FROM insurance_premiums ip
-      JOIN insurances i ON i.id = ip.insurance_id
-      WHERE i.user_id = ${userId}
-        AND ip.status != 'paid'
-        AND EXTRACT(MONTH FROM ip.due_date) = ${month}
-        AND EXTRACT(YEAR FROM ip.due_date) = ${year}
-    `,
-    sql`
-      SELECT l.name AS label, li.emi_amount AS amount, li.due_date
-      FROM loan_installments li
-      JOIN loans l ON l.id = li.loan_id
-      WHERE l.user_id = ${userId}
-        AND li.status = 'pending'
-        AND EXTRACT(MONTH FROM li.due_date) = ${month}
-        AND EXTRACT(YEAR FROM li.due_date) = ${year}
-    `,
-  ]);
-
-  const items: FinanceBillItem[] = [
-    ...bills.map((r: any) => ({
-      label: String(r.label),
-      amount: Number(r.occurrence_amount ?? r.scheduled_amount ?? 0),
-      dueDate: new Date(r.due_date).toISOString().slice(0, 10),
-      kind: "bill" as const,
-    })),
-    ...insurance.map((r: any) => ({
-      label: String(r.label),
-      amount: Number(r.amount ?? 0),
-      dueDate: new Date(r.due_date).toISOString().slice(0, 10),
-      kind: "insurance" as const,
-    })),
-    ...loans.map((r: any) => ({
-      label: String(r.label),
-      amount: Number(r.amount ?? 0),
-      dueDate: new Date(r.due_date).toISOString().slice(0, 10),
-      kind: "loan" as const,
-    })),
-  ];
-
-  return items.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 }

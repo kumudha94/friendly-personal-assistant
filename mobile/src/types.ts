@@ -137,16 +137,38 @@ export type EveningPlan = {
   items: { time: string; title: string }[];
 };
 
+export type FinanceBillStatus = "paid" | "pending" | "overdue" | "skipped";
+
 export type FinanceBillItem = {
   label: string;
   amount: number;
-  dueDate: string; // "YYYY-MM-DD"
-  kind: "bill" | "insurance" | "loan";
+  dueDate: string | null; // "YYYY-MM-DD"
+  isPaid: boolean;
+  status: FinanceBillStatus;
+};
+
+export type FinanceBillCategory = {
+  paidCount: number;
+  totalCount: number;
+  pendingAmount: number;
+  items: FinanceBillItem[];
 };
 
 export type FinanceSnapshot =
   | { linked: false }
-  | { linked: true; email: string; balance: number; totalDue: number; items: FinanceBillItem[] };
+  | {
+      linked: true;
+      email: string;
+      balance: number;
+      cycleLabel: string;
+      totalDue: number;
+      categories: {
+        scheduledPayments: FinanceBillCategory;
+        creditCardBills: FinanceBillCategory;
+        loans: FinanceBillCategory;
+        insurance: FinanceBillCategory;
+      };
+    };
 
 export type KitchenMealSlot = "breakfast" | "lunch" | "snack" | "dinner";
 

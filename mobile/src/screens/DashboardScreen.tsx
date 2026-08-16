@@ -160,7 +160,13 @@ export default function DashboardScreen() {
     return { slot, entry, label: mealLabel(entry) };
   })();
 
-  const nextBill = financeSnapshot?.linked ? financeSnapshot.items[0] : undefined;
+  // Earliest-due unpaid item across every category, for the Money card's single preview row.
+  const nextBill = financeSnapshot?.linked
+    ? Object.values(financeSnapshot.categories)
+        .flatMap((c) => c.items)
+        .filter((item) => !item.isPaid && item.dueDate)
+        .sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? ""))[0]
+    : undefined;
 
   function handleQuickWater() {
     setWaterLog.mutate({ date: today, count: waterCount + waterServing, target: waterTarget });
@@ -221,7 +227,7 @@ export default function DashboardScreen() {
           <Text style={styles.cardLabel}>💰 MONEY</Text>
           <Text style={styles.cardBigNumber}>₹{financeSnapshot.balance.toLocaleString("en-IN")}</Text>
           <Text style={styles.cardSubtext}>Current balance</Text>
-          <Text style={styles.cardMeta}>₹{financeSnapshot.totalDue.toLocaleString("en-IN")} due this month</Text>
+          <Text style={styles.cardMeta}>₹{financeSnapshot.totalDue.toLocaleString("en-IN")} due this cycle</Text>
           {nextBill && (
             <View style={styles.cardRow}>
               <Text style={styles.cardRowLabel} numberOfLines={1}>{nextBill.label}</Text>

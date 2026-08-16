@@ -152,7 +152,12 @@ From Phase 6, Group D — Polish & Integration
 - [ ] Offline-first with sync
 
 ---
+ 
+## Group H — Setting Menu
 
+- [ ] Plan for PIN menu - Why? everytime we need to send OTP to user to validate, if in local memory if you're able to check email id, check the user table, if user is available, we will ask user to enter PIN, otherwise OTP existing flow, forgor PIN also OTP existing flow, to do so, we need a PIN from user. user can set PIN from settings screen 
+
+---
 ## Pending / follow-up (update as groups complete)
 
 - **No DB migration or server deploy needed for Groups A, B, C, or E** — all mobile-app-only

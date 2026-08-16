@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Medication, MedicationLog } from "../types";
@@ -5,10 +6,12 @@ import { useDeleteMedication, useSetMedicationLog } from "../hooks/useMedication
 import { todayStr } from "../utils/date";
 import { intervalSummary, timesSummary } from "../utils/medicationSchedule";
 import { colors, radius } from "../theme/tokens";
+import MedicationForm from "./MedicationForm";
 
 export default function MedicationCard({ medication, logs }: { medication: Medication; logs: MedicationLog[] }) {
   const setMedicationLog = useSetMedicationLog();
   const deleteMedication = useDeleteMedication();
+  const [editing, setEditing] = useState(false);
   const today = todayStr();
   const takenToday = logs.find((l) => l.date === today)?.taken ?? false;
 
@@ -16,8 +19,12 @@ export default function MedicationCard({ medication, logs }: { medication: Medic
     setMedicationLog.mutate({ medicationId: medication.id, date: today, taken: !takenToday });
   };
 
+  if (editing) {
+    return <MedicationForm medication={medication} onDone={() => setEditing(false)} />;
+  }
+
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={() => setEditing(true)} activeOpacity={0.8}>
       <View style={styles.headerRow}>
         <TouchableOpacity style={[styles.checkbox, takenToday && styles.checkboxChecked]} onPress={handleToggle}>
           {takenToday && <Ionicons name="checkmark" size={14} color={colors.textPrimary} />}
@@ -41,7 +48,7 @@ export default function MedicationCard({ medication, logs }: { medication: Medic
           {medication.interval !== "as_needed" && medication.times.length > 0 ? ` · ${timesSummary(medication.times)}` : ""}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

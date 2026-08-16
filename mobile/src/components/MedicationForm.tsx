@@ -2,66 +2,88 @@ import { useState } from "react";
 import { ActivityIndicator, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
-import { format } from "date-fns";
-import { useCreateMedication } from "../hooks/useMedications";
+import { format, parseISO } from "date-fns";
+import { useCreateMedication, useUpdateMedication } from "../hooks/useMedications";
 import MedicationIntervalModal, { type IntervalValue } from "./MedicationIntervalModal";
 import MedicationTimeModal from "./MedicationTimeModal";
-import type { MedicationTime } from "../types";
+import type { Medication, MedicationTime } from "../types";
 import { formatTimeEntry, intervalSummary } from "../utils/medicationSchedule";
 import { colors, radius, spacing } from "../theme/tokens";
 
 const DEFAULT_INTERVAL: IntervalValue = { interval: "daily", intervalDays: null, repeatDays: [], daysOfMonth: [] };
 
-export default function MedicationForm() {
-  const [name, setName] = useState("");
-  const [dosage, setDosage] = useState("");
-  const [reminderEnabled, setReminderEnabled] = useState(false);
-  const [startDate, setStartDate] = useState(new Date());
+export default function MedicationForm({
+  medication,
+  onDone,
+}: {
+  medication?: Medication;
+  onDone?: () => void;
+}) {
+  const editing = !!medication;
+  const [name, setName] = useState(medication?.name ?? "");
+  const [dosage, setDosage] = useState(medication?.dosage ?? "");
+  const [reminderEnabled, setReminderEnabled] = useState(medication?.reminderEnabled ?? false);
+  const [startDate, setStartDate] = useState(medication?.startDate ? parseISO(medication.startDate) : new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [intervalValue, setIntervalValue] = useState<IntervalValue>(DEFAULT_INTERVAL);
+  const [intervalValue, setIntervalValue] = useState<IntervalValue>(
+    medication
+      ? {
+          interval: medication.interval,
+          intervalDays: medication.intervalDays,
+          repeatDays: medication.repeatDays,
+          daysOfMonth: medication.daysOfMonth,
+        }
+      : DEFAULT_INTERVAL,
+  );
   const [showIntervalModal, setShowIntervalModal] = useState(false);
-  const [times, setTimes] = useState<MedicationTime[]>([]);
+  const [times, setTimes] = useState<MedicationTime[]>(medication?.times ?? []);
   const [editingTimeIndex, setEditingTimeIndex] = useState<number | null>(null);
   const [showTimeModal, setShowTimeModal] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(medication?.message ?? "");
   const createMedication = useCreateMedication();
+  const updateMedication = useUpdateMedication();
+  const isPending = editing ? updateMedication.isPending : createMedication.isPending;
 
   const asNeeded = intervalValue.interval === "as_needed";
-  const canSubmit = name.trim().length > 0 && dosage.trim().length > 0 && !createMedication.isPending;
+  const canSubmit = name.trim().length > 0 && dosage.trim().length > 0 && !isPending;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
-    createMedication.mutate(
-      {
-        name: name.trim(),
-        dosage: dosage.trim(),
-        active: true,
-        reminderEnabled: asNeeded ? false : reminderEnabled,
-        startDate: format(startDate, "yyyy-MM-dd"),
-        interval: intervalValue.interval,
-        intervalDays: intervalValue.intervalDays,
-        repeatDays: intervalValue.repeatDays,
-        daysOfMonth: intervalValue.daysOfMonth,
-        times: asNeeded ? [] : times,
-        message: message.trim() || null,
+    const payload = {
+      name: name.trim(),
+      dosage: dosage.trim(),
+      active: true,
+      reminderEnabled: asNeeded ? false : reminderEnabled,
+      startDate: format(startDate, "yyyy-MM-dd"),
+      interval: intervalValue.interval,
+      intervalDays: intervalValue.intervalDays,
+      repeatDays: intervalValue.repeatDays,
+      daysOfMonth: intervalValue.daysOfMonth,
+      times: asNeeded ? [] : times,
+      message: message.trim() || null,
+    };
+
+    if (editing) {
+      updateMedication.mutate({ id: medication.id, patch: payload }, { onSuccess: onDone });
+      return;
+    }
+
+    createMedication.mutate(payload, {
+      onSuccess: () => {
+        setName("");
+        setDosage("");
+        setReminderEnabled(false);
+        setStartDate(new Date());
+        setIntervalValue(DEFAULT_INTERVAL);
+        setTimes([]);
+        setMessage("");
       },
-      {
-        onSuccess: () => {
-          setName("");
-          setDosage("");
-          setReminderEnabled(false);
-          setStartDate(new Date());
-          setIntervalValue(DEFAULT_INTERVAL);
-          setTimes([]);
-          setMessage("");
-        },
-      },
-    );
+    });
   };
 
   return (
     <View style={styles.card}>
-      <Text style={styles.label}>New medication</Text>
+      <Text style={styles.label}>{editing ? "Edit medication" : "New medication"}</Text>
       <TextInput
         style={styles.input}
         placeholder="e.g. Vitamin D"
@@ -147,15 +169,28 @@ export default function MedicationForm() {
         onChangeText={setMessage}
       />
 
-      <TouchableOpacity style={[styles.button, !canSubmit && styles.buttonDisabled]} onPress={handleSubmit} disabled={!canSubmit}>
-        {createMedication.isPending ? (
-          <ActivityIndicator color={colors.textPrimary} />
-        ) : (
-          <Text style={styles.buttonText}>Add medication</Text>
+      <View style={editing ? styles.editActionsRow : undefined}>
+        {editing && (
+          <TouchableOpacity style={styles.cancelButton} onPress={onDone} disabled={isPending}>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
         )}
-      </TouchableOpacity>
-      {createMedication.isError && (
-        <Text style={styles.error}>{(createMedication.error as Error).message}</Text>
+        <TouchableOpacity
+          style={[styles.button, editing && styles.buttonFlex, !canSubmit && styles.buttonDisabled]}
+          onPress={handleSubmit}
+          disabled={!canSubmit}
+        >
+          {isPending ? (
+            <ActivityIndicator color={colors.textPrimary} />
+          ) : (
+            <Text style={styles.buttonText}>{editing ? "Save changes" : "Add medication"}</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+      {(editing ? updateMedication.isError : createMedication.isError) && (
+        <Text style={styles.error}>
+          {((editing ? updateMedication.error : createMedication.error) as Error).message}
+        </Text>
       )}
 
       <MedicationIntervalModal
@@ -232,7 +267,18 @@ const styles = StyleSheet.create({
   },
   timeRowText: { fontSize: 13, color: colors.textPrimary },
   button: { backgroundColor: colors.accent, borderRadius: radius.control, paddingVertical: 12, alignItems: "center" },
+  buttonFlex: { flex: 1 },
   buttonDisabled: { opacity: 0.5 },
   buttonText: { color: colors.textPrimary, fontWeight: "600" },
+  editActionsRow: { flexDirection: "row", gap: spacing.sm },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: radius.control,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cancelButtonText: { color: colors.textSecondary, fontWeight: "600" },
   error: { color: colors.error, fontSize: 12 },
 });

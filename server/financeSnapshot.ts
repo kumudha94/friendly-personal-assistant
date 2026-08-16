@@ -1,9 +1,22 @@
-import { getAccountBalance, getBillsDueThisMonth, type FinanceBillItem } from "./financeDb";
+import { getAccountBalance } from "./financeDb";
+import { getBillsSummary, type FinanceBillCategory } from "./financeApi";
 import { getConnection } from "./connections";
 
 export type FinanceSnapshot =
   | { linked: false }
-  | { linked: true; email: string; balance: number; totalDue: number; items: FinanceBillItem[] };
+  | {
+      linked: true;
+      email: string;
+      balance: number;
+      cycleLabel: string;
+      totalDue: number;
+      categories: {
+        scheduledPayments: FinanceBillCategory;
+        creditCardBills: FinanceBillCategory;
+        loans: FinanceBillCategory;
+        insurance: FinanceBillCategory;
+      };
+    };
 
 export async function getFinanceSnapshot(): Promise<FinanceSnapshot> {
   const link = await getConnection("financetracker");
@@ -11,16 +24,20 @@ export async function getFinanceSnapshot(): Promise<FinanceSnapshot> {
     return { linked: false };
   }
 
-  const [balance, items] = await Promise.all([
+  const [balance, billsSummary] = await Promise.all([
     getAccountBalance(link.externalUserId),
-    getBillsDueThisMonth(link.externalUserId),
+    getBillsSummary(link.externalUserId),
   ]);
+
+  const { categories } = billsSummary;
+  const totalDue = Object.values(categories).reduce((sum, c) => sum + c.pendingAmount, 0);
 
   return {
     linked: true,
     email: link.email,
     balance,
-    totalDue: items.reduce((sum, item) => sum + item.amount, 0),
-    items,
+    cycleLabel: billsSummary.cycleLabel,
+    totalDue,
+    categories,
   };
 }

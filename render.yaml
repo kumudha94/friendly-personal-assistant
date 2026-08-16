@@ -16,5 +16,7 @@ services:
         sync: false
       - key: KITCHEN_DATABASE_URL
         sync: false
+      - key: FINANCE_INTEGRATION_KEY
+        sync: false
       - key: JWT_SECRET
         sync: false

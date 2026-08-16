@@ -1,10 +1,12 @@
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFinanceSnapshot } from "../hooks/useFinanceLink";
 import EmptyState from "../components/EmptyState";
 import { navigate } from "../navigation/navigationRef";
+import { getBalanceHidden, setBalanceHidden } from "../lib/balancePrivacy";
 import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
-import type { FinanceBillCategory, FinanceBillItem } from "../types";
+import type { FinanceAccount, FinanceBillCategory, FinanceBillItem } from "../types";
 
 const CATEGORY_META: Record<string, { label: string; icon: keyof typeof Ionicons.glyphMap }> = {
   scheduledPayments: { label: "Scheduled Payments", icon: "sync-outline" },
@@ -20,8 +22,21 @@ const STATUS_COLOR: Record<string, string> = {
   skipped: colors.textMuted,
 };
 
-function formatCurrency(amount: number): string {
-  return `₹${amount.toLocaleString("en-IN")}`;
+function formatCurrency(amount: number, hidden = false): string {
+  return hidden ? "₹••••••" : `₹${amount.toLocaleString("en-IN")}`;
+}
+
+function AccountRow({ account, hidden }: { account: FinanceAccount; hidden: boolean }) {
+  return (
+    <View style={styles.accountRow}>
+      <Ionicons name="business-outline" size={16} color={colors.accent} />
+      <View style={styles.billTextGroup}>
+        <Text style={styles.billLabel}>{account.name}</Text>
+        {!!account.bankName && <Text style={styles.billDate}>{account.bankName}</Text>}
+      </View>
+      <Text style={styles.billAmount}>{formatCurrency(account.balance, hidden)}</Text>
+    </View>
+  );
 }
 
 function BillRow({ item }: { item: FinanceBillItem }) {
@@ -64,6 +79,17 @@ function CategorySection({ id, category }: { id: string; category: FinanceBillCa
 
 export default function FinanceScreen() {
   const snapshotQuery = useFinanceSnapshot();
+  const [balanceHidden, setBalanceHiddenState] = useState(false);
+
+  useEffect(() => {
+    getBalanceHidden().then(setBalanceHiddenState);
+  }, []);
+
+  function toggleBalanceHidden() {
+    const next = !balanceHidden;
+    setBalanceHiddenState(next);
+    setBalanceHidden(next);
+  }
 
   if (snapshotQuery.isLoading) {
     return (
@@ -102,10 +128,28 @@ export default function FinanceScreen() {
   return (
     <ScrollView contentContainerStyle={styles.list}>
       <View style={styles.balanceCard}>
-        <Text style={styles.balanceLabel}>Bank balance</Text>
-        <Text style={styles.balanceValue}>{formatCurrency(snapshot.balance)}</Text>
+        <View style={styles.balanceHeaderRow}>
+          <Text style={styles.balanceLabel}>Total balance</Text>
+          <TouchableOpacity onPress={toggleBalanceHidden} hitSlop={8}>
+            <Ionicons
+              name={balanceHidden ? "eye-off-outline" : "eye-outline"}
+              size={16}
+              color={colors.textMuted}
+            />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.balanceValue}>{formatCurrency(snapshot.balance, balanceHidden)}</Text>
         <Text style={styles.connectedEmail}>Connected as {snapshot.email}</Text>
       </View>
+
+      {snapshot.accounts.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitleStandalone}>ACCOUNTS</Text>
+          {snapshot.accounts.map((account, index) => (
+            <AccountRow key={`${account.name}-${index}`} account={account} hidden={balanceHidden} />
+          ))}
+        </View>
+      )}
 
       {hasAnyBills ? (
         <>
@@ -129,9 +173,21 @@ const styles = StyleSheet.create({
   errorText: { color: colors.error, textAlign: "center", padding: spacing.lg },
   list: { padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE, gap: spacing.md },
   balanceCard: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, alignItems: "center", gap: 2 },
+  balanceHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.xs, alignSelf: "stretch" },
   balanceLabel: { fontSize: typography.caption.fontSize, color: colors.textMuted },
   balanceValue: { fontSize: 32, fontWeight: "700", color: colors.textPrimary },
   connectedEmail: { fontSize: typography.caption.fontSize, color: colors.textMuted, marginTop: spacing.xs },
+  sectionTitleStandalone: { fontSize: typography.caption.fontSize, fontWeight: "600", color: colors.textMuted, letterSpacing: 0.5 },
+  accountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    padding: spacing.sm + 6,
+    borderRadius: radius.card,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
   cycleTitle: {
     fontSize: typography.caption.fontSize,
     fontWeight: "600",

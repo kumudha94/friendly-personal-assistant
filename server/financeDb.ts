@@ -13,14 +13,25 @@ function getFinanceSql() {
 // "What's due" no longer lives here — it moved to financeApi.ts, which calls FinanceTracker's
 // own /api/integrations/milo/bills-summary endpoint instead of re-deriving cycle/status rules
 // against these raw tables (see that endpoint's comment for why the old direct-SQL version was
-// wrong). Balance is a simple, unambiguous sum with no business logic to get wrong, so it stays
-// a direct read here.
-export async function getAccountBalance(userId: number): Promise<number> {
+// wrong). Balances are a simple, unambiguous list with no business logic to get wrong, so they
+// stay a direct read here.
+export type FinanceAccount = {
+  name: string;
+  bankName: string | null;
+  balance: number;
+};
+
+export async function getAccounts(userId: number): Promise<FinanceAccount[]> {
   const sql = getFinanceSql();
   const rows = await sql`
-    SELECT COALESCE(SUM(balance), 0) AS total
+    SELECT name, bank_name, balance
     FROM accounts
-    WHERE user_id = ${userId} AND type IN ('bank', 'wallet')
+    WHERE user_id = ${userId} AND type IN ('bank', 'wallet') AND is_active = true
+    ORDER BY balance DESC
   `;
-  return Number(rows[0]?.total ?? 0);
+  return rows.map((r: any) => ({
+    name: String(r.name),
+    bankName: r.bank_name ?? null,
+    balance: Number(r.balance ?? 0),
+  }));
 }

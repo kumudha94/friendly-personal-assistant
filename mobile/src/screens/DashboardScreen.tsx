@@ -27,10 +27,15 @@ import PlanEveningSheet from "../components/milo/PlanEveningSheet";
 import { getProfile } from "../lib/settings";
 import { DEFAULT_WATER_SETTINGS, formatWaterCompact, getWaterSettings, servingMl, type WaterSettings } from "../lib/waterSettings";
 import { DEFAULT_CYCLE_SETTINGS, getCycleSettings, type CycleSettings } from "../lib/cycleSettings";
+import { getBalanceHidden, setBalanceHidden } from "../lib/balancePrivacy";
 import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
 
 const MEAL_SLOT_TIME: Record<MealSlot, string> = { breakfast: "08:00", lunch: "13:00", dinner: "19:00" };
 const MEAL_SLOTS: MealSlot[] = ["breakfast", "lunch", "dinner"];
+
+function formatAmount(amount: number, hidden: boolean): string {
+  return hidden ? "₹••••••" : `₹${amount.toLocaleString("en-IN")}`;
+}
 
 function greeting(name: string): string {
   const hour = new Date().getHours();
@@ -56,6 +61,7 @@ export default function DashboardScreen() {
   const [dismissals, setDismissals] = useState<Dismissals>({});
   const [waterSettings, setWaterSettingsState] = useState<WaterSettings>(DEFAULT_WATER_SETTINGS);
   const [cycleSettings, setCycleSettingsState] = useState<CycleSettings>(DEFAULT_CYCLE_SETTINGS);
+  const [balanceHidden, setBalanceHiddenState] = useState(false);
 
   const weatherQuery = useWeatherSnapshot(profile?.homeLocation || undefined);
 
@@ -63,6 +69,7 @@ export default function DashboardScreen() {
     getProfile().then(setProfile);
     getDismissals().then(setDismissals);
     getWaterSettings().then(setWaterSettingsState);
+    getBalanceHidden().then(setBalanceHiddenState);
     getCycleSettings().then(setCycleSettingsState);
   }, []);
 
@@ -168,6 +175,12 @@ export default function DashboardScreen() {
         .sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? ""))[0]
     : undefined;
 
+  function toggleBalanceHidden() {
+    const next = !balanceHidden;
+    setBalanceHiddenState(next);
+    setBalanceHidden(next);
+  }
+
   function handleQuickWater() {
     setWaterLog.mutate({ date: today, count: waterCount + waterServing, target: waterTarget });
   }
@@ -224,14 +237,23 @@ export default function DashboardScreen() {
           onPress={() => navigate("More", { screen: "Finance" })}
           activeOpacity={0.85}
         >
-          <Text style={styles.cardLabel}>💰 MONEY</Text>
-          <Text style={styles.cardBigNumber}>₹{financeSnapshot.balance.toLocaleString("en-IN")}</Text>
+          <View style={styles.cardHeaderRow}>
+            <Text style={styles.cardLabel}>💰 MONEY</Text>
+            <TouchableOpacity onPress={toggleBalanceHidden} hitSlop={8}>
+              <Ionicons
+                name={balanceHidden ? "eye-off-outline" : "eye-outline"}
+                size={16}
+                color={colors.textMuted}
+              />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.cardBigNumber}>{formatAmount(financeSnapshot.balance, balanceHidden)}</Text>
           <Text style={styles.cardSubtext}>Current balance</Text>
-          <Text style={styles.cardMeta}>₹{financeSnapshot.totalDue.toLocaleString("en-IN")} due this cycle</Text>
+          <Text style={styles.cardMeta}>{formatAmount(financeSnapshot.totalDue, balanceHidden)} due this cycle</Text>
           {nextBill && (
             <View style={styles.cardRow}>
               <Text style={styles.cardRowLabel} numberOfLines={1}>{nextBill.label}</Text>
-              <Text style={styles.cardRowValue}>₹{nextBill.amount.toLocaleString("en-IN")}</Text>
+              <Text style={styles.cardRowValue}>{formatAmount(nextBill.amount, balanceHidden)}</Text>
             </View>
           )}
           <Text style={styles.cardLink}>View Finance</Text>
@@ -389,6 +411,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     gap: 2,
   },
+  cardHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   cardLabel: { color: colors.textMuted, fontSize: typography.caption.fontSize, fontWeight: "600", letterSpacing: 0.5, marginBottom: 4 },
   cardBigNumber: { color: colors.textPrimary, fontSize: 28, fontWeight: "700" },
   cardBigText: { color: colors.textPrimary, fontSize: typography.sectionTitle.fontSize, fontWeight: "700" },

@@ -154,12 +154,19 @@ export type FinanceBillCategory = {
   items: FinanceBillItem[];
 };
 
+export type FinanceAccount = {
+  name: string;
+  bankName: string | null;
+  balance: number;
+};
+
 export type FinanceSnapshot =
   | { linked: false }
   | {
       linked: true;
       email: string;
       balance: number;
+      accounts: FinanceAccount[];
       cycleLabel: string;
       totalDue: number;
       categories: {

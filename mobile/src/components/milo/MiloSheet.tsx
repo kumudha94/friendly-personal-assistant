@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -54,65 +57,81 @@ export default function MiloSheet({ visible, onClose, onPlanEvening }: MiloSheet
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} />
-      <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.md }]}>
-        <View style={styles.handle} />
-
-        <View style={styles.header}>
-          <MiloCore state={coreState} size={40} />
-          <Text style={styles.title}>What do you need?</Text>
-        </View>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Tell Milo what to remember…"
-          placeholderTextColor={colors.textMuted}
-          value={text}
-          onChangeText={setText}
-          multiline
-        />
-
-        <TouchableOpacity style={[styles.submit, !canSubmit && styles.submitDisabled]} onPress={handleSubmit} disabled={!canSubmit}>
-          {quickAdd.isPending ? <ActivityIndicator color={colors.textPrimary} /> : <Text style={styles.submitText}>Add</Text>}
-        </TouchableOpacity>
-
-        {quickAdd.isError && <Text style={styles.error}>{(quickAdd.error as Error).message}</Text>}
-        {quickAdd.isSuccess && <ActionReceipt result={quickAdd.data} />}
-
-        <View style={styles.shortcutsRow}>
-          {SHORTCUTS.map((shortcut) => (
-            <TouchableOpacity
-              key={shortcut.label}
-              style={styles.shortcut}
-              onPress={() => {
-                onClose();
-                shortcut.onPress();
-              }}
-            >
-              <Ionicons name={shortcut.icon} size={18} color={colors.accent} />
-              <Text style={styles.shortcutLabel}>{shortcut.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <TouchableOpacity
-          style={styles.voiceRow}
-          onPress={() => Alert.alert("Voice — coming soon", "\"Hey Milo\" voice commands are waiting on account approval from the wake-word provider.")}
+      {/* Modal renders in its own native window on Android, so the manifest's adjustResize
+          never reaches it — nothing pushes this content above the keyboard without an
+          explicit KeyboardAvoidingView here, same fix already used on EmailEntryScreen/OtpScreen. */}
+      <KeyboardAvoidingView
+        style={styles.flexFill}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <Pressable style={styles.backdrop} onPress={onClose} />
+        <ScrollView
+          style={styles.sheet}
+          contentContainerStyle={[styles.sheetContent, { paddingBottom: insets.bottom + spacing.md }]}
+          keyboardShouldPersistTaps="handled"
         >
-          <Ionicons name="mic-outline" size={16} color={colors.textMuted} />
-          <Text style={styles.voiceLabel}>Hold to talk — coming soon</Text>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.handle} />
+
+          <View style={styles.header}>
+            <MiloCore state={coreState} size={40} />
+            <Text style={styles.title}>What do you need?</Text>
+          </View>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Tell Milo what to remember…"
+            placeholderTextColor={colors.textMuted}
+            value={text}
+            onChangeText={setText}
+            multiline
+          />
+
+          <TouchableOpacity style={[styles.submit, !canSubmit && styles.submitDisabled]} onPress={handleSubmit} disabled={!canSubmit}>
+            {quickAdd.isPending ? <ActivityIndicator color={colors.textPrimary} /> : <Text style={styles.submitText}>Add</Text>}
+          </TouchableOpacity>
+
+          {quickAdd.isError && <Text style={styles.error}>{(quickAdd.error as Error).message}</Text>}
+          {quickAdd.isSuccess && <ActionReceipt result={quickAdd.data} />}
+
+          <View style={styles.shortcutsRow}>
+            {SHORTCUTS.map((shortcut) => (
+              <TouchableOpacity
+                key={shortcut.label}
+                style={styles.shortcut}
+                onPress={() => {
+                  onClose();
+                  shortcut.onPress();
+                }}
+              >
+                <Ionicons name={shortcut.icon} size={18} color={colors.accent} />
+                <Text style={styles.shortcutLabel}>{shortcut.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TouchableOpacity
+            style={styles.voiceRow}
+            onPress={() => Alert.alert("Voice — coming soon", "\"Hey Milo\" voice commands are waiting on account approval from the wake-word provider.")}
+          >
+            <Ionicons name="mic-outline" size={16} color={colors.textMuted} />
+            <Text style={styles.voiceLabel}>Hold to talk — coming soon</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  flexFill: { flex: 1 },
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.55)" },
   sheet: {
+    flexGrow: 0,
     backgroundColor: colors.elevatedSurface,
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
+  },
+  sheetContent: {
     padding: spacing.md,
     gap: spacing.sm,
   },

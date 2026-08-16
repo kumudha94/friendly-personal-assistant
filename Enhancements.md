@@ -122,6 +122,19 @@ follow-ups are called out in **bold** since they need to be run manually.
       Milo's cloud backend can't query it live. Likely shape: a one-way local→cloud push (a
       script or a new office-dashboard route sends a compact task/PR summary to a new Milo
       endpoint on a schedule), not a live query. Needs its own design pass before implementation.
+- [ ] **#13** In-app meal planning (parked, not yet designed, 2026-08-16): the Dashboard's Home
+      card and Kitchen screen's "Plan {slot}" link are currently a dead end — Milo's Kitchen
+      integration is read-only (direct `KITCHEN_DATABASE_URL` reads), so there's no way to
+      actually plan a meal without leaving Milo. Checked KitchenPlanner's own mobile app for a
+      deep-link option first — it has no URL scheme registered in `app.json`, and even if added,
+      deep-linking out would still be a context switch, not really "in-app." Checked
+      KitchenPlanner's server instead: `PUT /api/meal-plan/:date/:slot` already exists there with
+      a correctly-built upsert (`recipeId`/`note`, proper recipe-snapshot handling), but it's
+      gated behind KitchenPlanner's own user-session login, which Milo doesn't hold. Recommended
+      shape: same pattern as the FinanceTracker bills-summary fix — add a small, API-key-protected
+      endpoint on KitchenPlanner that calls its existing `upsertSlot()` (reusing the correct logic
+      instead of Milo re-deriving it), then build an actual recipe-picker + note UI into Milo's
+      Kitchen screen. Comparable scope to the Finance integration work. Needs its own design pass.
 
 ---
 
@@ -130,12 +143,29 @@ follow-ups are called out in **bold** since they need to be run manually.
 Not part of the original 10-item testing feedback — copied over from `Milo-Roadmap.md`'s own
 open checkboxes so all outstanding work lives in one place. Not started.
 
-**From Phase 4 — Wake Word Integration** (blocked since 2026-08-15: Picovoice Console is gating
-the `info@dreamdaycrew.com` account behind manual commercial-use review; no workaround, revisit
-once approved)
+**From Phase 4 — Wake Word Integration** (add-on feature, not core to Milo — low priority,
+revisit whenever convenient, not blocking anything else)
 
-- [ ] Train custom wake word "Milo" on Picovoice Console — download `.ppn` model
-- [ ] Integrate `@picovoice/porcupine-react-native`
+**Provider decision (2026-08-16): dropped Picovoice, moving to DaVoice.** Picovoice's own FAQ
+states they're "a B2B company focused on on-device AI tools for enterprises... no dedicated free
+or paid plans for personal or non-commercial use" — the `info@dreamdaycrew.com` account's
+commercial-use review (pending since 2026-08-15) may simply never approve a solo personal app
+like Milo, since it doesn't fit their target customer at all. Investigated **openWakeWord** as
+an alternative first and ruled it out — no official React Native/Expo SDK (Python/ONNX, built
+for desktop/Raspberry Pi); using it would mean writing a custom native Android bridge around
+`onnxruntime-react-native` from scratch, real engineering work rather than a drop-in swap.
+**DaVoice** (`react-native-davoice`) looks like the right fit instead: has an actual React Native
+package and integration guide, needs the same native-build/prebuild step already planned for
+Picovoice (no new cost there), supports custom wake words (1-2 week turnaround, same as
+Picovoice's own custom-keyword process would have been), and — the key difference — explicitly
+offers "a free license for individuals or small startups in their early stages," obtained by
+emailing `info@davoice.io`, rather than an opaque enterprise-only review. Next step when this
+gets picked back up: email DaVoice for the free individual license before writing any
+integration code.
+
+- [ ] Email DaVoice (`info@davoice.io`) for a free individual-use license
+- [ ] Train/request custom wake word "Milo" from DaVoice (1-2 week turnaround)
+- [ ] Integrate `react-native-davoice`
 - [ ] Android foreground service with persistent low-priority notification
 - [ ] Request `RECORD_AUDIO`, foreground service, and notification permissions (Android 13+)
 - [ ] On wake word detected → deep link → Dashboard screen

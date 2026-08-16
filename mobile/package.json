@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo run:android",
     "build:apk": "npx eas-cli build -p android --profile preview",
-    "build:aab": "npx eas-cli build -p android --profile production"
+    "build:aab": "npx eas-cli build -p android --profile production",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

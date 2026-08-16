@@ -41,6 +41,12 @@ import { authenticateToken } from "./authMiddleware";
 const FK_VIOLATION = "23503";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Unauthenticated on purpose, and registered before the auth gate below — uptime monitors
+  // (UptimeRobot, Render health checks) need a 200 that doesn't require a login token.
+  app.get("/health", (_req, res) => {
+    res.json({ status: "ok" });
+  });
+
   // Login happens against FinanceTracker (shared identity across FinanceTracker/
   // KitchenPlanner/Milo — see project notes); this backend only verifies the token.
   app.use(authenticateToken);

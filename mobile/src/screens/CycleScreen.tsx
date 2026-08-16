@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { format, parseISO } from "date-fns";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,6 +7,15 @@ import { useCycleLogs, useCreateCycleLog, useUpdateCycleLog, useDeleteCycleLog }
 import CycleSummary from "../components/CycleSummary";
 import { todayStr } from "../utils/date";
 import type { CycleLog } from "../types";
+import { ensureAndroidChannel, requestNotificationPermissions } from "../lib/notifications";
+import {
+  DEFAULT_CYCLE_SETTINGS,
+  getCycleSettings,
+  setCycleSettings,
+  type CycleSettings,
+} from "../lib/cycleSettings";
+import { scheduleCycleNotifications } from "../lib/cycleNotifications";
+import { predictNextStartFromCycleLength } from "../utils/cycle";
 import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
 
 function LogPeriodControl({ ongoing }: { ongoing: CycleLog | undefined }) {
@@ -81,8 +90,63 @@ function CycleHistoryRow({ log }: { log: CycleLog }) {
   );
 }
 
+function CycleSettingsCard({
+  settings,
+  onChange,
+}: {
+  settings: CycleSettings;
+  onChange: (next: CycleSettings) => void;
+}) {
+  return (
+    <View style={styles.settingsCard}>
+      <Text style={styles.heading}>Cycle settings</Text>
+      <View style={styles.settingsRow}>
+        <View style={styles.settingsField}>
+          <Text style={styles.settingsLabel}>Cycle length (days)</Text>
+          <TextInput
+            style={styles.settingsInput}
+            keyboardType="number-pad"
+            defaultValue={String(settings.cycleLengthDays)}
+            onEndEditing={(e) => {
+              const value = Number(e.nativeEvent.text);
+              if (!Number.isFinite(value) || value <= 0) return;
+              onChange({ ...settings, cycleLengthDays: Math.round(value) });
+            }}
+          />
+        </View>
+        <View style={styles.settingsField}>
+          <Text style={styles.settingsLabel}>Avg period length (days)</Text>
+          <TextInput
+            style={styles.settingsInput}
+            keyboardType="number-pad"
+            defaultValue={String(settings.periodLengthDays)}
+            onEndEditing={(e) => {
+              const value = Number(e.nativeEvent.text);
+              if (!Number.isFinite(value) || value <= 0) return;
+              onChange({ ...settings, periodLengthDays: Math.round(value) });
+            }}
+          />
+        </View>
+      </View>
+      <Text style={styles.settingsNote}>
+        Milo predicts your next period from your last logged start date + cycle length, and
+        reminds you 2 days before, then checks in if you haven't logged it a day after.
+      </Text>
+    </View>
+  );
+}
+
 export default function CycleScreen() {
   const cycleQuery = useCycleLogs();
+  const [settings, setSettings] = useState<CycleSettings>(DEFAULT_CYCLE_SETTINGS);
+
+  useEffect(() => {
+    (async () => {
+      await ensureAndroidChannel();
+      await requestNotificationPermissions();
+      setSettings(await getCycleSettings());
+    })();
+  }, []);
 
   if (cycleQuery.isLoading) {
     return (
@@ -103,6 +167,13 @@ export default function CycleScreen() {
   const logs = (cycleQuery.data ?? []).slice().sort((a, b) => b.startDate.localeCompare(a.startDate));
   const ongoing = logs.find((l) => !l.endDate);
 
+  const handleSettingsChange = (next: CycleSettings) => {
+    setSettings(next);
+    setCycleSettings(next);
+    const predicted = predictNextStartFromCycleLength(logs.map((l) => l.startDate), next.cycleLengthDays);
+    scheduleCycleNotifications(predicted);
+  };
+
   return (
     <FlatList
       contentContainerStyle={styles.list}
@@ -110,8 +181,9 @@ export default function CycleScreen() {
       keyExtractor={(item: CycleLog) => String(item.id)}
       ListHeaderComponent={
         <View style={styles.headerGap}>
-          <CycleSummary logs={logs} />
+          <CycleSummary logs={logs} settings={settings} />
           <LogPeriodControl ongoing={ongoing} />
+          <CycleSettingsCard settings={settings} onChange={handleSettingsChange} />
           <Text style={styles.sectionTitle}>History</Text>
         </View>
       }
@@ -142,6 +214,27 @@ const styles = StyleSheet.create({
   buttonText: { color: colors.textPrimary, fontWeight: "600" },
   sectionTitle: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
   emptyText: { fontSize: 13, color: colors.textMuted },
+  settingsCard: {
+    padding: spacing.md,
+    borderRadius: radius.card,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.sm,
+  },
+  settingsRow: { flexDirection: "row", gap: spacing.sm },
+  settingsField: { flex: 1, gap: spacing.xs },
+  settingsLabel: { fontSize: 12, fontWeight: "600", color: colors.textSecondary },
+  settingsInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.control,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: colors.elevatedSurface,
+    color: colors.textPrimary,
+  },
+  settingsNote: { fontSize: 12, color: colors.textMuted, lineHeight: 17 },
   historyRow: {
     flexDirection: "row",
     alignItems: "center",

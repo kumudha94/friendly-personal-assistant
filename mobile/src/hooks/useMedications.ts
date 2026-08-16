@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "../lib/api";
-import type { Medication } from "../types";
+import { cancelMedicationNotifications, scheduleMedicationNotifications } from "../lib/medicationNotifications";
 
 export function useMedications() {
   return useQuery({ queryKey: ["medications"], queryFn: api.getMedications });
@@ -10,22 +10,32 @@ export function useCreateMedication() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: api.createMedication,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["medications"] }),
+    onSuccess: async (medication) => {
+      await scheduleMedicationNotifications(medication);
+      queryClient.invalidateQueries({ queryKey: ["medications"] });
+    },
   });
 }
 
 export function useUpdateMedication() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, patch }: { id: number; patch: Partial<Medication> }) => api.updateMedication(id, patch),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["medications"] }),
+    mutationFn: ({ id, patch }: { id: number; patch: Partial<api.CreateMedicationInput> }) =>
+      api.updateMedication(id, patch),
+    onSuccess: async (medication) => {
+      await scheduleMedicationNotifications(medication);
+      queryClient.invalidateQueries({ queryKey: ["medications"] });
+    },
   });
 }
 
 export function useDeleteMedication() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: api.deleteMedication,
+    mutationFn: async (id: number) => {
+      await api.deleteMedication(id);
+      await cancelMedicationNotifications(id);
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["medications"] }),
   });
 }

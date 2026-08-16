@@ -22,7 +22,7 @@ Notifications.setNotificationHandler({
 });
 
 // expo-notifications weekday convention: 1 = Sunday ... 7 = Saturday.
-const WEEKDAY_INDEX: Record<WeekDay, number> = {
+export const WEEKDAY_INDEX: Record<WeekDay, number> = {
   sun: 1,
   mon: 2,
   tue: 3,

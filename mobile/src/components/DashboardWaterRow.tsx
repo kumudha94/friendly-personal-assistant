@@ -1,24 +1,27 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import WaterProgressBar from "./WaterProgressBar";
+import { DEFAULT_WATER_SETTINGS, formatWaterAmount, type WaterSettings } from "../lib/waterSettings";
 import { colors, radius, spacing, typography } from "../theme/tokens";
 
 export default function DashboardWaterRow({
   count,
   target,
-  onAddGlass,
+  onAdd,
+  settings = DEFAULT_WATER_SETTINGS,
 }: {
   count: number;
   target: number;
-  onAddGlass: () => void;
+  onAdd: () => void;
+  settings?: WaterSettings;
 }) {
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <Text style={styles.label}>
-          Water: {count}/{target} glasses
+          Water: {formatWaterAmount(count, settings)} of {formatWaterAmount(target, settings)}
         </Text>
-        <TouchableOpacity style={styles.addButton} onPress={onAddGlass}>
+        <TouchableOpacity style={styles.addButton} onPress={onAdd}>
           <Ionicons name="add" size={16} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>

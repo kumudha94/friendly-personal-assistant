@@ -32,9 +32,9 @@ export function isWithinQuietHours(quietHours: QuietHours, date: Date = new Date
 
 const PROFILE_KEY = "milo:profile";
 
-export type Profile = { name: string };
+export type Profile = { name: string; homeLocation: string };
 
-const DEFAULT_PROFILE: Profile = { name: "" };
+const DEFAULT_PROFILE: Profile = { name: "", homeLocation: "" };
 
 export async function getProfile(): Promise<Profile> {
   const raw = await AsyncStorage.getItem(PROFILE_KEY);

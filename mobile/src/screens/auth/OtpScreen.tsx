@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { useMutation } from "@tanstack/react-query";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { requestOtp, verifyOtp } from "../../lib/api";
@@ -40,47 +49,58 @@ export default function OtpScreen({ route }: Props) {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <Text style={styles.title}>Check your email</Text>
-      <Text style={styles.subtitle}>Enter the 6-digit code we sent to {email}</Text>
-
-      <TextInput
-        style={styles.input}
-        value={code}
-        onChangeText={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))}
-        placeholder="000000"
-        placeholderTextColor={colors.textMuted}
-        keyboardType="number-pad"
-        maxLength={6}
-        onSubmitEditing={handleSubmit}
-        returnKeyType="done"
-        autoFocus
-      />
-
-      {error && <Text style={styles.error}>{error}</Text>}
-
-      <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={verify.isPending}>
-        <Text style={styles.buttonText}>{verify.isPending ? "Verifying…" : "Verify"}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.linkButton}
-        onPress={() => {
-          setResent(false);
-          resend.mutate();
-        }}
-        disabled={resend.isPending}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : StatusBar.currentHeight ?? 0}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.linkButtonText}>
-          {resend.isPending ? "Sending…" : resent ? "Code sent again" : "Resend code"}
-        </Text>
-      </TouchableOpacity>
+        <Text style={styles.title}>Check your email</Text>
+        <Text style={styles.subtitle}>Enter the 6-digit code we sent to {email}</Text>
+
+        <TextInput
+          style={styles.input}
+          value={code}
+          onChangeText={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))}
+          placeholder="000000"
+          placeholderTextColor={colors.textMuted}
+          keyboardType="number-pad"
+          maxLength={6}
+          onSubmitEditing={handleSubmit}
+          returnKeyType="done"
+          autoFocus
+        />
+
+        {error && <Text style={styles.error}>{error}</Text>}
+
+        <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={verify.isPending}>
+          <Text style={styles.buttonText}>{verify.isPending ? "Verifying…" : "Verify"}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.linkButton}
+          onPress={() => {
+            setResent(false);
+            resend.mutate();
+          }}
+          disabled={resend.isPending}
+        >
+          <Text style={styles.linkButtonText}>
+            {resend.isPending ? "Sending…" : resent ? "Code sent again" : "Resend code"}
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: spacing.lg, justifyContent: "center" },
+  container: { flex: 1, backgroundColor: colors.background },
+  scrollContent: { flexGrow: 1, justifyContent: "center", padding: spacing.lg },
   title: {
     fontSize: typography.screenTitle.fontSize,
     fontWeight: typography.screenTitle.fontWeight,

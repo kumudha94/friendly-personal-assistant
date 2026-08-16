@@ -77,13 +77,23 @@ export type WeightLog = {
   notes: string | null;
 };
 
+export type MedicationInterval = "daily" | "weekly" | "every_x_days" | "monthly" | "as_needed";
+
+export type MedicationTime = { time: string; dose: number }; // time: "HH:mm"
+
 export type Medication = {
   id: number;
   name: string;
   dosage: string;
-  quantityRemaining: number;
-  refillThreshold: number;
   active: boolean;
+  reminderEnabled: boolean;
+  startDate: string | null; // "YYYY-MM-DD"
+  interval: MedicationInterval;
+  intervalDays: number | null;
+  repeatDays: WeekDay[];
+  daysOfMonth: number[];
+  times: MedicationTime[];
+  message: string | null;
   createdAt: string;
 };
 
@@ -159,3 +169,13 @@ export type KitchenSnapshot =
   | { configured: false }
   | { connected: false }
   | { configured: true; connected: true; date: string; meals: KitchenMealEntry[] };
+
+export type WeatherSnapshot =
+  | { configured: false }
+  | {
+      configured: true;
+      tempC: number;
+      condition: string; // OpenWeatherMap "main", e.g. "Rain", "Clear", "Clouds"
+      description: string; // e.g. "light rain"
+      locationName: string;
+    };

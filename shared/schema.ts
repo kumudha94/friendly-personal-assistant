@@ -1,5 +1,6 @@
-import { pgTable, serial, text, integer, real, boolean, date, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, real, boolean, date, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 
 export const habits = pgTable("habits", {
   id: serial("id").primaryKey(),
@@ -67,13 +68,22 @@ export const weightLogs = pgTable("weight_logs", {
   notes: text("notes"),
 });
 
+export type MedicationTime = { time: string; dose: number }; // time: "HH:mm"
+export type MedicationInterval = "daily" | "weekly" | "every_x_days" | "monthly" | "as_needed";
+
 export const medications = pgTable("medications", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   dosage: text("dosage").notNull(),
-  quantityRemaining: integer("quantity_remaining").notNull().default(0),
-  refillThreshold: integer("refill_threshold").notNull().default(5),
   active: boolean("active").notNull().default(true),
+  reminderEnabled: boolean("reminder_enabled").notNull().default(false),
+  startDate: date("start_date"),
+  interval: text("interval").$type<MedicationInterval>().notNull().default("daily"),
+  intervalDays: integer("interval_days"), // used when interval = "every_x_days"
+  repeatDays: text("repeat_days").array().notNull().default([]), // used when interval = "weekly"
+  daysOfMonth: integer("days_of_month").array().notNull().default([]), // used when interval = "monthly"
+  times: jsonb("times").$type<MedicationTime[]>().notNull().default([]),
+  message: text("message"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -147,7 +157,10 @@ export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit(
 });
 export const insertMoodLogSchema = createInsertSchema(moodLogs).omit({ id: true });
 export const insertWeightLogSchema = createInsertSchema(weightLogs).omit({ id: true });
-export const insertMedicationSchema = createInsertSchema(medications).omit({ id: true, createdAt: true });
+export const insertMedicationSchema = createInsertSchema(medications, {
+  interval: z.enum(["daily", "weekly", "every_x_days", "monthly", "as_needed"]),
+  times: z.array(z.object({ time: z.string(), dose: z.number() })),
+}).omit({ id: true, createdAt: true });
 export const insertMedicationLogSchema = createInsertSchema(medicationLogs).omit({ id: true });
 export const insertSymptomLogSchema = createInsertSchema(symptomLogs).omit({ id: true, createdAt: true });
 export const insertCycleLogSchema = createInsertSchema(cycleLogs).omit({ id: true });

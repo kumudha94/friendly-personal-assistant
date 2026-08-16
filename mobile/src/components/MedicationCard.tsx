@@ -1,8 +1,9 @@
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Medication, MedicationLog } from "../types";
 import { useDeleteMedication, useSetMedicationLog } from "../hooks/useMedications";
 import { todayStr } from "../utils/date";
+import { intervalSummary, timesSummary } from "../utils/medicationSchedule";
 import { colors, radius } from "../theme/tokens";
 
 export default function MedicationCard({ medication, logs }: { medication: Medication; logs: MedicationLog[] }) {
@@ -10,22 +11,9 @@ export default function MedicationCard({ medication, logs }: { medication: Medic
   const deleteMedication = useDeleteMedication();
   const today = todayStr();
   const takenToday = logs.find((l) => l.date === today)?.taken ?? false;
-  const lowSupply = medication.quantityRemaining <= medication.refillThreshold;
 
   const handleToggle = () => {
-    setMedicationLog.mutate(
-      { medicationId: medication.id, date: today, taken: !takenToday },
-      {
-        onSuccess: ({ medication: updated }) => {
-          if (!takenToday && updated.quantityRemaining <= updated.refillThreshold) {
-            Alert.alert(
-              "Refill needed",
-              `${updated.name} is down to ${updated.quantityRemaining} left — time to refill.`,
-            );
-          }
-        },
-      },
-    );
+    setMedicationLog.mutate({ medicationId: medication.id, date: today, taken: !takenToday });
   };
 
   return (
@@ -43,13 +31,15 @@ export default function MedicationCard({ medication, logs }: { medication: Medic
         </TouchableOpacity>
       </View>
       <View style={styles.footerRow}>
-        <Text style={styles.quantityText}>{medication.quantityRemaining} remaining</Text>
-        {lowSupply && (
-          <View style={styles.lowSupplyBadge}>
-            <Ionicons name="alert-circle" size={12} color={colors.error} />
-            <Text style={styles.lowSupplyText}>Refill soon</Text>
-          </View>
-        )}
+        <Ionicons
+          name={medication.reminderEnabled ? "notifications" : "notifications-off-outline"}
+          size={13}
+          color={medication.reminderEnabled ? colors.accent : colors.textMuted}
+        />
+        <Text style={styles.scheduleText}>
+          {intervalSummary(medication)}
+          {medication.interval !== "as_needed" && medication.times.length > 0 ? ` · ${timesSummary(medication.times)}` : ""}
+        </Text>
       </View>
     </View>
   );
@@ -78,8 +68,6 @@ const styles = StyleSheet.create({
   titleGroup: { flex: 1 },
   name: { fontSize: 15, fontWeight: "600", color: colors.textPrimary },
   meta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  footerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  quantityText: { fontSize: 12, color: colors.textMuted },
-  lowSupplyBadge: { flexDirection: "row", alignItems: "center", gap: 4 },
-  lowSupplyText: { fontSize: 11, fontWeight: "600", color: colors.error },
+  footerRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  scheduleText: { fontSize: 12, color: colors.textMuted, flex: 1 },
 });

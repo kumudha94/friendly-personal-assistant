@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, typography } from "../../theme/tokens";
 import MiloSheet from "./MiloSheet";
 import PlanEveningSheet from "./PlanEveningSheet";
+import DigestSheet from "./DigestSheet";
 
 const TAB_BAR_HEIGHT = 56;
 
@@ -12,6 +13,7 @@ export default function MiloBar() {
   const insets = useSafeAreaInsets();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [planSheetOpen, setPlanSheetOpen] = useState(false);
+  const [digestSheetOpen, setDigestSheetOpen] = useState(false);
 
   return (
     <>
@@ -19,6 +21,15 @@ export default function MiloBar() {
         <TouchableOpacity style={styles.bar} activeOpacity={0.85} onPress={() => setSheetOpen(true)}>
           <Ionicons name="add" size={18} color={colors.textSecondary} />
           <Text style={styles.label}>Ask Milo…</Text>
+          <TouchableOpacity
+            style={styles.digestWrap}
+            onPress={(e) => {
+              e.stopPropagation();
+              setDigestSheetOpen(true);
+            }}
+          >
+            <Ionicons name="sparkles" size={16} color={colors.accent} />
+          </TouchableOpacity>
           <View style={styles.micWrap}>
             <Ionicons name="mic" size={16} color={colors.textMuted} />
           </View>
@@ -34,6 +45,7 @@ export default function MiloBar() {
         }}
       />
       <PlanEveningSheet visible={planSheetOpen} onClose={() => setPlanSheetOpen(false)} />
+      <DigestSheet visible={digestSheetOpen} onClose={() => setDigestSheetOpen(false)} />
     </>
   );
 }
@@ -63,6 +75,14 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   label: { flex: 1, color: colors.textSecondary, fontSize: typography.body.fontSize },
+  digestWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+  },
   micWrap: {
     width: 28,
     height: 28,

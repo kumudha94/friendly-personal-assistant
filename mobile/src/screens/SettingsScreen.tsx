@@ -3,6 +3,8 @@ import { Alert, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacit
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useMutation } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { MoreStackParamList } from "../navigation/MoreStack";
 import {
   getProfile,
   getQuietHours,
@@ -15,6 +17,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { deleteAccount } from "../lib/api";
 import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
 
+type Props = NativeStackScreenProps<MoreStackParamList, "Settings">;
+
 function parseTime(value: string): Date {
   const [hour, minute] = value.split(":").map(Number);
   const date = new Date();
@@ -26,7 +30,7 @@ function formatTime(date: Date): string {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }: Props) {
   const { user, logout } = useAuth();
   const deleteAccountMutation = useMutation({
     mutationFn: deleteAccount,
@@ -36,6 +40,8 @@ export default function SettingsScreen() {
   const [profile, setProfileState] = useState<Profile | null>(null);
   const [nameDraft, setNameDraft] = useState("");
   const [nameJustSaved, setNameJustSaved] = useState(false);
+  const [locationDraft, setLocationDraft] = useState("");
+  const [locationJustSaved, setLocationJustSaved] = useState(false);
   const [quietHours, setQuietHoursState] = useState<QuietHours | null>(null);
   const [showPicker, setShowPicker] = useState<"start" | "end" | null>(null);
 
@@ -43,11 +49,13 @@ export default function SettingsScreen() {
     getProfile().then((loaded) => {
       setProfileState(loaded);
       setNameDraft(loaded.name);
+      setLocationDraft(loaded.homeLocation);
     });
     getQuietHours().then(setQuietHoursState);
   }, []);
 
   const nameHasChange = profile !== null && nameDraft.trim() !== profile.name;
+  const locationHasChange = profile !== null && locationDraft.trim() !== profile.homeLocation;
 
   const handleSaveName = () => {
     if (!profile || !nameHasChange) return;
@@ -56,6 +64,15 @@ export default function SettingsScreen() {
     saveProfile(next);
     setNameJustSaved(true);
     setTimeout(() => setNameJustSaved(false), 1500);
+  };
+
+  const handleSaveLocation = () => {
+    if (!profile || !locationHasChange) return;
+    const next = { ...profile, homeLocation: locationDraft.trim() };
+    setProfileState(next);
+    saveProfile(next);
+    setLocationJustSaved(true);
+    setTimeout(() => setLocationJustSaved(false), 1500);
   };
 
   const update = (patch: Partial<QuietHours>) => {
@@ -123,6 +140,30 @@ export default function SettingsScreen() {
           )}
         </View>
         {nameJustSaved && <Text style={styles.savedText}>Saved</Text>}
+
+        <Text style={styles.label}>Home location</Text>
+        <View style={styles.nameRow}>
+          <TextInput
+            style={[styles.input, styles.nameInput]}
+            placeholder="City, e.g. Chennai"
+            placeholderTextColor={colors.textMuted}
+            value={locationDraft}
+            onChangeText={setLocationDraft}
+            onSubmitEditing={handleSaveLocation}
+            returnKeyType="done"
+          />
+          {(locationHasChange || locationJustSaved) && (
+            <TouchableOpacity
+              style={[styles.saveNameButton, locationJustSaved && styles.saveNameButtonSaved]}
+              onPress={handleSaveLocation}
+              disabled={!locationHasChange}
+            >
+              <Ionicons name="checkmark" size={20} color={colors.textPrimary} />
+            </TouchableOpacity>
+          )}
+        </View>
+        {locationJustSaved && <Text style={styles.savedText}>Saved</Text>}
+        <Text style={styles.subheading}>Used for the weather line on your Dashboard.</Text>
       </View>
 
       <Text style={styles.heading}>Quiet hours</Text>
@@ -163,6 +204,26 @@ export default function SettingsScreen() {
         />
       )}
 
+      <Text style={styles.heading}>Milo & data</Text>
+      <View style={styles.card}>
+        <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate("Memory")}>
+          <Ionicons name="bulb-outline" size={18} color={colors.accent} />
+          <View style={styles.linkTextGroup}>
+            <Text style={styles.label}>Memory</Text>
+            <Text style={styles.subheading}>Things Milo remembers about you</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.border} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate("ConnectedApps")}>
+          <Ionicons name="link-outline" size={18} color={colors.accent} />
+          <View style={styles.linkTextGroup}>
+            <Text style={styles.label}>Connected apps</Text>
+            <Text style={styles.subheading}>Manage what Milo can read from other apps</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.border} />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.noteCard}>
         <Text style={styles.noteText}>
           Milo's reminders are scheduled directly on your device, not sent from a server. Quiet
@@ -182,6 +243,8 @@ const styles = StyleSheet.create({
   subheading: { fontSize: 13, color: colors.textMuted },
   card: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, gap: spacing.md },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  linkRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  linkTextGroup: { flex: 1, gap: 2 },
   label: { fontSize: 14, fontWeight: "600", color: colors.textPrimary },
   input: {
     borderWidth: 1,

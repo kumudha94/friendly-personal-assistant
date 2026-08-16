@@ -12,6 +12,8 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
+      - key: WEATHER_API_KEY
+        sync: false
       - key: KITCHEN_DATABASE_URL
         sync: false
       - key: JWT_SECRET

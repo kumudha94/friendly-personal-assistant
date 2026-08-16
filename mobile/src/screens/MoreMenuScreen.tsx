@@ -14,18 +14,11 @@ const MENU_ITEMS: {
 }[] = [
   { route: "Water", icon: "water", label: "Water", description: "Quick-tap intake logging" },
   { route: "Goals", icon: "flag", label: "Goals", description: "Track goals, optionally linked to a habit" },
-  { route: "Journal", icon: "book", label: "Journal", description: "Daily notes and weekly/monthly reviews" },
-  { route: "Wellness", icon: "heart", label: "Wellness", description: "Mood check-ins and insights" },
-  { route: "Digest", icon: "sparkles", label: "Digest", description: "Claude-generated summary of recent activity" },
-  { route: "QuickAdd", icon: "flash", label: "Quick add", description: "Add a reminder, habit, or goal in plain English" },
+  { route: "Journal", icon: "book", label: "Journal", description: "Diary, mood check-ins, weekly/monthly reviews, and insights" },
   { route: "Weight", icon: "scale", label: "Weight", description: "Track weight over time" },
   { route: "Medications", icon: "medkit", label: "Medications", description: "Doses, refill alerts, and symptom log" },
   { route: "Cycle", icon: "calendar", label: "Cycle", description: "Track periods and predict the next one" },
-  { route: "Settings", icon: "settings", label: "Settings", description: "Quiet hours and notification controls" },
-  { route: "Memory", icon: "bulb", label: "Memory", description: "Things Milo remembers about you" },
-  { route: "Finance", icon: "wallet", label: "Finance", description: "Upcoming bills and balance from FinanceTracker" },
-  { route: "Kitchen", icon: "restaurant", label: "Kitchen", description: "Today's meal plan from KitchenPlanner" },
-  { route: "ConnectedApps", icon: "link", label: "Connected Apps", description: "Manage what Milo can read from other apps" },
+  { route: "Settings", icon: "settings", label: "Settings", description: "Quiet hours, notifications, and connected data" },
 ];
 
 export default function MoreMenuScreen({ navigation }: Props) {

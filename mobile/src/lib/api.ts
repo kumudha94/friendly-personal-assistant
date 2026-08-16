@@ -17,6 +17,7 @@ import type {
   Reminder,
   SymptomLog,
   WaterLog,
+  WeatherSnapshot,
   WeekDay,
   WeightLog,
   WeightUnit,
@@ -236,11 +237,13 @@ export function getMedications() {
   return request<Medication[]>("/medications");
 }
 
-export function createMedication(input: { name: string; dosage: string; quantityRemaining: number; refillThreshold: number }) {
+export type CreateMedicationInput = Omit<Medication, "id" | "createdAt">;
+
+export function createMedication(input: CreateMedicationInput) {
   return request<Medication>("/medications", { method: "POST", body: JSON.stringify(input) });
 }
 
-export function updateMedication(id: number, patch: Partial<Pick<Medication, "name" | "dosage" | "quantityRemaining" | "refillThreshold" | "active">>) {
+export function updateMedication(id: number, patch: Partial<CreateMedicationInput>) {
   return request<Medication>(`/medications/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
 }
 
@@ -309,4 +312,8 @@ export function getFinanceSnapshot() {
 
 export function getKitchenSnapshot(date: string) {
   return request<KitchenSnapshot>(`/kitchen_snapshot?date=${date}`);
+}
+
+export function getWeather(location: string) {
+  return request<WeatherSnapshot>(`/weather?location=${encodeURIComponent(location)}`);
 }

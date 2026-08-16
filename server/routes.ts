@@ -40,6 +40,7 @@ import * as miloAuth from "./auth";
 import * as connections from "./connections";
 import { getFinanceSnapshot } from "./financeSnapshot";
 import { getKitchenSnapshot } from "./kitchenDb";
+import { getWeatherSnapshot } from "./weather";
 import { asyncHandler } from "./asyncHandler";
 import { authenticateToken } from "./authMiddleware";
 
@@ -578,6 +579,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }),
   );
 
+  // Weather (Dashboard brief) — lazy/non-throwing when WEATHER_API_KEY isn't configured yet,
+  // same pattern as finance/kitchen: 502 only on an actual upstream failure.
+  app.get(
+    "/weather",
+    asyncHandler(async (req, res) => {
+      const location = typeof req.query.location === "string" ? req.query.location : undefined;
+      if (!location) {
+        return res.status(400).json({ message: "location is required" });
+      }
+      try {
+        res.json(await getWeatherSnapshot(location));
+      } catch (err: any) {
+        res.status(502).json({ message: err.message });
+      }
+    }),
+  );
+
   // Weight logs
   app.post(
     "/weight_logs",
@@ -653,8 +671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }),
   );
 
-  // Medication logs — taking a dose decrements the medication's quantityRemaining;
-  // un-taking restores it, so quantity stays accurate regardless of toggle direction.
+  // Medication logs
   app.post(
     "/medication_logs",
     asyncHandler(async (req, res) => {
@@ -670,32 +687,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             eq(medicationLogs.date, parsed.data.date),
           ),
         );
-      const wasTaken = existing.length > 0 ? existing[0].taken : false;
-      const nowTaken = parsed.data.taken;
 
       const log =
         existing.length > 0
           ? (
               await db
                 .update(medicationLogs)
-                .set({ taken: nowTaken })
+                .set({ taken: parsed.data.taken })
                 .where(eq(medicationLogs.id, existing[0].id))
                 .returning()
             )[0]
           : (await db.insert(medicationLogs).values(parsed.data).returning())[0];
 
-      let medication;
-      if (wasTaken !== nowTaken) {
-        const [med] = await db.select().from(medications).where(eq(medications.id, parsed.data.medicationId));
-        const newQuantity = Math.max(0, med.quantityRemaining + (nowTaken ? -1 : 1));
-        [medication] = await db
-          .update(medications)
-          .set({ quantityRemaining: newQuantity })
-          .where(eq(medications.id, parsed.data.medicationId))
-          .returning();
-      } else {
-        [medication] = await db.select().from(medications).where(eq(medications.id, parsed.data.medicationId));
-      }
+      const [medication] = await db.select().from(medications).where(eq(medications.id, parsed.data.medicationId));
 
       res.status(existing.length > 0 ? 200 : 201).json({ log, medication });
     }),

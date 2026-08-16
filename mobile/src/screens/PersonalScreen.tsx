@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
-import { differenceInCalendarDays, parseISO } from "date-fns";
 import { useHabits } from "../hooks/useHabits";
 import { useHabitLogs } from "../hooks/useHabitLogs";
 import { useWaterLogs, useSetWaterLog } from "../hooks/useWater";
 import { useGoals } from "../hooks/useGoals";
 import { useMedications, useMedicationLogs } from "../hooks/useMedications";
 import { useCycleLogs } from "../hooks/useCycle";
-import { calculateStreak } from "../utils/streak";
 import { todayStr } from "../utils/date";
 import DashboardHabitRow from "../components/DashboardHabitRow";
 import DashboardWaterRow from "../components/DashboardWaterRow";
@@ -16,15 +14,9 @@ import CycleSummary from "../components/CycleSummary";
 import MiloInsight from "../components/milo/MiloInsight";
 import { colors, MILO_BAR_CLEARANCE, spacing, typography } from "../theme/tokens";
 import { dismissToday, getDismissals, isDismissed, muteForever, type Dismissals } from "../lib/insights";
-
-const DEFAULT_WATER_TARGET = 8;
-
-function relativeDateLabel(dateStr: string): string {
-  const days = differenceInCalendarDays(parseISO(dateStr), new Date());
-  if (days <= 0) return "today";
-  if (days === 1) return "tomorrow";
-  return `in ${days} days`;
-}
+import { computeInsights } from "../lib/miloInsights";
+import { DEFAULT_WATER_SETTINGS, getWaterSettings, servingMl, type WaterSettings } from "../lib/waterSettings";
+import { DEFAULT_CYCLE_SETTINGS, getCycleSettings, type CycleSettings } from "../lib/cycleSettings";
 
 export default function PersonalScreen() {
   const habitsQuery = useHabits();
@@ -37,9 +29,13 @@ export default function PersonalScreen() {
   const setWaterLog = useSetWaterLog();
   const [refreshing, setRefreshing] = useState(false);
   const [dismissals, setDismissals] = useState<Dismissals>({});
+  const [waterSettings, setWaterSettingsState] = useState<WaterSettings>(DEFAULT_WATER_SETTINGS);
+  const [cycleSettings, setCycleSettingsState] = useState<CycleSettings>(DEFAULT_CYCLE_SETTINGS);
 
   useEffect(() => {
     getDismissals().then(setDismissals);
+    getWaterSettings().then(setWaterSettingsState);
+    getCycleSettings().then(setCycleSettingsState);
   }, []);
 
   const isLoading =
@@ -86,66 +82,23 @@ export default function PersonalScreen() {
   const today = todayStr();
   const todayWaterLog = waterLogs.find((l) => l.date === today);
   const waterCount = todayWaterLog?.count ?? 0;
-  const waterTarget = todayWaterLog?.target ?? DEFAULT_WATER_TARGET;
+  const waterTarget = todayWaterLog?.target ?? waterSettings.targetMl;
+  const serving = servingMl(waterSettings);
 
   const habitsWithLogs = habits.map((habit) => ({
     habit,
     logs: logs.filter((l) => l.habitId === habit.id),
   }));
-  const streaks = habitsWithLogs.map(({ habit, logs: habitLogs }) => ({
-    habit,
-    streak: calculateStreak(habitLogs),
-  }));
-  const topStreak = streaks.reduce((best, s) => (s.streak > (best?.streak ?? 0) ? s : best), streaks[0]);
 
-  const allInsights: {
-    id: string;
-    icon: string;
-    text: string;
-    primaryActionLabel?: string;
-    onPrimaryAction?: () => void;
-  }[] = [];
-  if (topStreak && topStreak.streak >= 3) {
-    allInsights.push({
-      id: "streak",
-      icon: "🔥",
-      text: `${topStreak.habit.name} — ${topStreak.streak} day streak`,
-    });
-  }
-  if (waterCount < waterTarget) {
-    allInsights.push({
-      id: "water",
-      icon: "💧",
-      text: `${waterTarget - waterCount} glasses left today`,
-      primaryActionLabel: "Log a glass",
-      onPrimaryAction: () =>
-        setWaterLog.mutate({ date: today, count: waterCount + 1, target: waterTarget }),
-    });
-  }
-  const upcomingGoal = goals
-    .filter(
-      (g) =>
-        !g.completed &&
-        g.targetDate &&
-        differenceInCalendarDays(parseISO(g.targetDate), new Date()) <= 7 &&
-        differenceInCalendarDays(parseISO(g.targetDate), new Date()) >= 0,
-    )
-    .sort((a, b) => (a.targetDate ?? "").localeCompare(b.targetDate ?? ""))[0];
-  if (upcomingGoal && upcomingGoal.targetDate) {
-    allInsights.push({
-      id: `goal-${upcomingGoal.id}`,
-      icon: "🎯",
-      text: `${upcomingGoal.title} — due ${relativeDateLabel(upcomingGoal.targetDate)}`,
-    });
-  }
-  const lowMedication = medications.find((m) => m.quantityRemaining <= m.refillThreshold);
-  if (lowMedication) {
-    allInsights.push({
-      id: `medication-${lowMedication.id}`,
-      icon: "💊",
-      text: `${lowMedication.name} — refill soon`,
-    });
-  }
+  const allInsights = computeInsights({
+    habits,
+    habitLogs: logs,
+    waterCount,
+    waterTarget,
+    onLogWater: () => setWaterLog.mutate({ date: today, count: waterCount + serving, target: waterTarget }),
+    goals,
+    waterSettings,
+  });
   const visibleInsights = allInsights.filter((insight) => !isDismissed(dismissals, insight.id, today));
 
   const handleInsightNotNow = (id: string) => {
@@ -208,8 +161,9 @@ export default function PersonalScreen() {
         <DashboardWaterRow
           count={waterCount}
           target={waterTarget}
-          onAddGlass={() =>
-            setWaterLog.mutate({ date: today, count: waterCount + 1, target: waterTarget })
+          settings={waterSettings}
+          onAdd={() =>
+            setWaterLog.mutate({ date: today, count: waterCount + serving, target: waterTarget })
           }
         />
       </View>
@@ -231,7 +185,7 @@ export default function PersonalScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>CYCLE</Text>
-        <CycleSummary logs={cycleLogs} />
+        <CycleSummary logs={cycleLogs} settings={cycleSettings} />
       </View>
     </ScrollView>
   );

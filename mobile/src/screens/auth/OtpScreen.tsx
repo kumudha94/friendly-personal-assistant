@@ -18,12 +18,14 @@ export default function OtpScreen({ route }: Props) {
 
   const verify = useMutation({
     mutationFn: () => verifyOtp(email, code.trim()),
-    onSuccess: (result) => login(result.accessToken, result.refreshToken, result.user),
+    onSuccess: (result) => login(result.token, result.user),
     onError: (err: Error) => setError(err.message),
   });
 
   const resend = useMutation({
-    mutationFn: () => requestOtp(email),
+    // Account already exists at this point (request-otp is idempotent for an existing
+    // email) — the name value here is ignored server-side.
+    mutationFn: () => requestOtp(email, "resend"),
     onSuccess: () => setResent(true),
     onError: (err: Error) => setError(err.message),
   });

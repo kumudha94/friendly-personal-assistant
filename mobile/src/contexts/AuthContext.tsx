@@ -1,12 +1,12 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
-import { getAccessToken, setTokens, setStoredUser, getStoredUser, clearTokens } from "../lib/authStorage";
+import { getToken, setToken, setStoredUser, getStoredUser, clearToken } from "../lib/authStorage";
 import { setUnauthorizedHandler, type AuthUser } from "../lib/api";
 
 type AuthContextValue = {
   isLoading: boolean;
   isAuthenticated: boolean;
   user: AuthUser | null;
-  login: (accessToken: string, refreshToken: string, user: AuthUser) => Promise<void>;
+  login: (token: string, user: AuthUser) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -17,12 +17,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
 
   const logout = useCallback(async () => {
-    await clearTokens();
+    await clearToken();
     setUser(null);
   }, []);
 
-  const login = useCallback(async (accessToken: string, refreshToken: string, loggedInUser: AuthUser) => {
-    await setTokens(accessToken, refreshToken);
+  const login = useCallback(async (token: string, loggedInUser: AuthUser) => {
+    await setToken(token);
     await setStoredUser(loggedInUser);
     setUser(loggedInUser);
   }, []);
@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setUnauthorizedHandler(() => setUser(null));
     (async () => {
-      const token = await getAccessToken();
+      const token = await getToken();
       if (token) {
         const storedUser = await getStoredUser<AuthUser>();
         if (storedUser) setUser(storedUser);

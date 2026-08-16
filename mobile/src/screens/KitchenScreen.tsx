@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
 import { useKitchenSnapshot } from "../hooks/useKitchen";
 import EmptyState from "../components/EmptyState";
+import { navigate } from "../navigation/navigationRef";
 import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
 import { todayStr } from "../utils/date";
 import { MEAL_SLOT_LABEL, mealLabel, nextMealSlot, type MealSlot } from "../utils/meal";
@@ -65,12 +66,14 @@ export default function KitchenScreen() {
 
   const snapshot = snapshotQuery.data;
 
-  if (snapshotQuery.isError || !snapshot?.configured) {
+  if (snapshotQuery.isError || !snapshot || !("meals" in snapshot)) {
     return (
       <View style={styles.container}>
         <EmptyState
-          title="Kitchen not connected"
-          subtitle="Milo isn't reading from KitchenPlanner on this server yet."
+          title="Not connected"
+          subtitle="Connect KitchenPlanner from Connected Apps to see today's meal plan here."
+          actionLabel="Go to Connected Apps"
+          onAction={() => navigate("More", { screen: "ConnectedApps" })}
         />
       </View>
     );

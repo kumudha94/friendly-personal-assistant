@@ -1,10 +1,12 @@
 import { neon } from "@neondatabase/serverless";
+import { getConnection } from "./connections";
 
 // Read-only access to KitchenPlanner's own Neon DB. Every query in this file must be a
 // SELECT — this connection uses KitchenPlanner's own DATABASE_URL (full read/write access),
 // so the read-only guarantee here is a code-level discipline, not a DB-enforced one.
-// Unlike FinanceTracker, KitchenPlanner is single-tenant (no user_id column on its tables),
-// so there's no OTP/email linking step — just a configured/not-configured check.
+// KitchenPlanner is single-tenant (no user_id column on its tables), so this doesn't need
+// to scope any query by user — but reading is still gated behind an explicit "Connected
+// Apps" consent link (see connections.ts), not just KITCHEN_DATABASE_URL being configured.
 function getKitchenSql() {
   if (!process.env.KITCHEN_DATABASE_URL) {
     throw new Error("KITCHEN_DATABASE_URL is not configured on this server.");
@@ -31,11 +33,17 @@ export type KitchenMealEntry = {
 
 export type KitchenSnapshot =
   | { configured: false }
-  | { configured: true; date: string; meals: KitchenMealEntry[] };
+  | { connected: false }
+  | { configured: true; connected: true; date: string; meals: KitchenMealEntry[] };
 
 export async function getKitchenSnapshot(date: string): Promise<KitchenSnapshot> {
   if (!process.env.KITCHEN_DATABASE_URL) {
     return { configured: false };
+  }
+
+  const link = await getConnection("kitchenplanner");
+  if (!link) {
+    return { connected: false };
   }
 
   const sql = getKitchenSql();
@@ -62,5 +70,5 @@ export async function getKitchenSnapshot(date: string): Promise<KitchenSnapshot>
       : null,
   }));
 
-  return { configured: true, date, meals };
+  return { configured: true, connected: true, date, meals };
 }

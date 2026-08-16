@@ -32,7 +32,7 @@ function greeting(name: string): string {
 
 function kitchenStatusText(snapshot: KitchenSnapshot | undefined): string {
   if (!snapshot) return "Loading...";
-  if (!snapshot.configured) return "Not connected";
+  if (!("meals" in snapshot)) return "Tap to connect";
   const slot = nextMealSlot();
   if (!slot) return "Today's meals are done";
   const entry = snapshot.meals.find((m) => m.slot === slot);

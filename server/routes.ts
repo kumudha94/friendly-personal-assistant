@@ -15,6 +15,9 @@ import {
   medicationLogs,
   symptomLogs,
   cycleLogs,
+  users,
+  emailOtps,
+  appConnections,
   insertHabitSchema,
   insertHabitLogSchema,
   insertReminderSchema,
@@ -33,12 +36,36 @@ import {
 import { generateDigest } from "./digest";
 import { parseQuickAdd } from "./quickAdd";
 import { planEvening } from "./planEvening";
-import { requestOtp, verifyOtp, unlink as unlinkFinance, getSnapshot as getFinanceSnapshot } from "./financeLink";
+import * as miloAuth from "./auth";
+import * as connections from "./connections";
+import { getFinanceSnapshot } from "./financeSnapshot";
 import { getKitchenSnapshot } from "./kitchenDb";
 import { asyncHandler } from "./asyncHandler";
 import { authenticateToken } from "./authMiddleware";
 
 const FK_VIOLATION = "23503";
+
+// Milo is single-tenant (no userId column anywhere) — "delete my account" and "wipe this
+// database" are the same operation. Order matters for the FK-constrained tables (children
+// before parents); everything else has no FK relationships so order doesn't matter there.
+async function deleteAllMiloData(userId: number): Promise<void> {
+  await db.delete(habitLogs);
+  await db.delete(habits);
+  await db.delete(medicationLogs);
+  await db.delete(medications);
+  await db.delete(symptomLogs);
+  await db.delete(cycleLogs);
+  await db.delete(reminders);
+  await db.delete(waterLogs);
+  await db.delete(goals);
+  await db.delete(journalEntries);
+  await db.delete(moodLogs);
+  await db.delete(weightLogs);
+  await db.delete(memories);
+  await db.delete(appConnections);
+  await db.delete(emailOtps);
+  await db.delete(users).where(eq(users.id, userId));
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Unauthenticated on purpose, and registered before the auth gate below — uptime monitors
@@ -47,9 +74,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: "ok" });
   });
 
-  // Login happens against FinanceTracker (shared identity across FinanceTracker/
-  // KitchenPlanner/Milo — see project notes); this backend only verifies the token.
+  // Milo's own login — independent account, own OTP flow (not shared with FinanceTracker/
+  // KitchenPlanner). Necessarily unauthenticated: you can't already hold a token to get one.
+  app.post(
+    "/auth/request-otp",
+    asyncHandler(async (req, res) => {
+      const { email, name } = req.body;
+      if (!email || typeof email !== "string" || !name || typeof name !== "string") {
+        return res.status(400).json({ message: "email and name are required" });
+      }
+      try {
+        await miloAuth.requestOtp(email, name);
+        res.status(204).end();
+      } catch (err: any) {
+        res.status(502).json({ message: err.message });
+      }
+    }),
+  );
+
+  app.post(
+    "/auth/verify-otp",
+    asyncHandler(async (req, res) => {
+      const { email, code } = req.body;
+      if (!email || !code || typeof email !== "string" || typeof code !== "string") {
+        return res.status(400).json({ message: "email and code are required" });
+      }
+      try {
+        const result = await miloAuth.verifyOtp(email, code);
+        res.json(result);
+      } catch (err: any) {
+        res.status(400).json({ message: err.message });
+      }
+    }),
+  );
+
+  // Read-only existence check for the "Connected Apps" flow — KitchenPlanner/FinanceTracker
+  // ask "does an account with this email exist in Milo" before offering to connect. Never
+  // creates anything, unlike request-otp above.
+  app.get(
+    "/auth/exists",
+    asyncHandler(async (req, res) => {
+      const email = typeof req.query.email === "string" ? req.query.email : undefined;
+      if (!email) return res.status(400).json({ message: "email is required" });
+      res.json({ exists: await miloAuth.userExists(email) });
+    }),
+  );
+
+  // Everything below requires a Milo login.
   app.use(authenticateToken);
+
+  // Connected Apps — Milo optionally reads FinanceTracker/KitchenPlanner data, but only
+  // after an explicit, OTP-verified per-app connection (see connections.ts).
+  app.get(
+    "/connections",
+    asyncHandler(async (req, res) => {
+      try {
+        res.json(await connections.getConnectionsSnapshot(req.user!.email));
+      } catch (err: any) {
+        res.status(502).json({ message: err.message });
+      }
+    }),
+  );
+
+  app.post(
+    "/connections/:appId/request-otp",
+    asyncHandler(async (req, res) => {
+      try {
+        await connections.requestConnectOtp(req.params.appId, req.user!.email);
+        res.status(204).end();
+      } catch (err: any) {
+        res.status(502).json({ message: err.message });
+      }
+    }),
+  );
+
+  app.post(
+    "/connections/:appId/verify-otp",
+    asyncHandler(async (req, res) => {
+      const { code } = req.body;
+      if (!code || typeof code !== "string") {
+        return res.status(400).json({ message: "code is required" });
+      }
+      try {
+        await connections.verifyConnectOtp(req.params.appId, req.user!.email, code);
+        res.status(204).end();
+      } catch (err: any) {
+        res.status(400).json({ message: err.message });
+      }
+    }),
+  );
+
+  app.delete(
+    "/connections/:appId",
+    asyncHandler(async (req, res) => {
+      await connections.disconnectApp(req.params.appId);
+      res.status(204).end();
+    }),
+  );
+
+  // Hard delete: removes Milo's own account row plus every other table's data. Milo is
+  // single-tenant (no userId column anywhere), so "delete my account" and "wipe this
+  // database" are the same operation.
+  app.delete(
+    "/account",
+    asyncHandler(async (req, res) => {
+      await deleteAllMiloData(req.user!.userId);
+      res.status(204).end();
+    }),
+  );
 
   // Habits
   app.post(
@@ -417,48 +549,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }),
   );
 
-  // FinanceTracker cross-link (email-verified, read-only)
-  app.post(
-    "/finance_link/request_otp",
-    asyncHandler(async (req, res) => {
-      const { email } = req.body;
-      if (!email || typeof email !== "string") {
-        return res.status(400).json({ message: "email is required" });
-      }
-      try {
-        await requestOtp(email);
-        res.status(204).end();
-      } catch (err: any) {
-        const status = err.message?.includes("No FinanceTracker account") ? 404 : 502;
-        res.status(status).json({ message: err.message });
-      }
-    }),
-  );
-
-  app.post(
-    "/finance_link/verify_otp",
-    asyncHandler(async (req, res) => {
-      const { email, code } = req.body;
-      if (!email || !code || typeof email !== "string" || typeof code !== "string") {
-        return res.status(400).json({ message: "email and code are required" });
-      }
-      try {
-        const result = await verifyOtp(email, code);
-        res.json(result);
-      } catch (err: any) {
-        res.status(400).json({ message: err.message });
-      }
-    }),
-  );
-
-  app.delete(
-    "/finance_link",
-    asyncHandler(async (_req, res) => {
-      await unlinkFinance();
-      res.status(204).end();
-    }),
-  );
-
+  // FinanceTracker balance/bills — connect/disconnect now lives under /connections;
+  // this just reads the snapshot once connected.
   app.get(
     "/finance_snapshot",
     asyncHandler(async (_req, res) => {

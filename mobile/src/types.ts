@@ -157,4 +157,5 @@ export type KitchenMealEntry = {
 
 export type KitchenSnapshot =
   | { configured: false }
-  | { configured: true; date: string; meals: KitchenMealEntry[] };
+  | { connected: false }
+  | { configured: true; connected: true; date: string; meals: KitchenMealEntry[] };

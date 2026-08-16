@@ -13,6 +13,7 @@ import SettingsScreen from "../screens/SettingsScreen";
 import MemoryScreen from "../screens/MemoryScreen";
 import FinanceScreen from "../screens/FinanceScreen";
 import KitchenScreen from "../screens/KitchenScreen";
+import ConnectedAppsScreen from "../screens/ConnectedAppsScreen";
 import PersonalScreen from "../screens/PersonalScreen";
 
 export type MoreStackParamList = {
@@ -30,6 +31,7 @@ export type MoreStackParamList = {
   Memory: undefined;
   Finance: undefined;
   Kitchen: undefined;
+  ConnectedApps: undefined;
   Personal: undefined;
 };
 
@@ -52,6 +54,7 @@ export default function MoreStack() {
       <Stack.Screen name="Memory" component={MemoryScreen} options={{ title: "Memory" }} />
       <Stack.Screen name="Finance" component={FinanceScreen} options={{ title: "Finance" }} />
       <Stack.Screen name="Kitchen" component={KitchenScreen} options={{ title: "Kitchen" }} />
+      <Stack.Screen name="ConnectedApps" component={ConnectedAppsScreen} options={{ title: "Connected Apps" }} />
       <Stack.Screen name="Personal" component={PersonalScreen} options={{ title: "Personal" }} />
     </Stack.Navigator>
   );

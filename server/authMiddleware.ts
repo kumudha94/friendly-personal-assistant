@@ -6,12 +6,12 @@ if (!process.env.JWT_SECRET) {
 }
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Milo has no login system of its own — identity is FinanceTracker's (one shared login
-// across FinanceTracker/KitchenPlanner/Milo). This just verifies a token FinanceTracker
-// issued. This env var is named JWT_SECRET here, but its value must equal FinanceTracker's
-// SESSION_SECRET — FinanceTracker's own jwtService.ts falls back to SESSION_SECRET for
-// signing since it has no JWT_SECRET set in its own environment. FinanceTracker's payload
-// also has a `type: "access" | "refresh"` field this doesn't care about.
+const SESSION_EXPIRY = "90d";
+
+// Milo has its own independent login (its own `users` table, own OTP flow) — this is not
+// shared with FinanceTracker or KitchenPlanner. Data from those apps is surfaced only via
+// the explicit, consent-based "Connected Apps" flow (see connections.ts), never via a
+// shared identity.
 export type AuthPayload = { userId: number; email: string };
 
 declare global {
@@ -20,6 +20,10 @@ declare global {
       user?: AuthPayload;
     }
   }
+}
+
+export function signToken(payload: AuthPayload): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: SESSION_EXPIRY });
 }
 
 export function authenticateToken(req: Request, res: Response, next: NextFunction) {

@@ -10,16 +10,21 @@ import type { AuthStackParamList } from "../../navigation/AuthStack";
 type Props = NativeStackScreenProps<AuthStackParamList, "EmailEntry">;
 
 export default function EmailEntryScreen({ navigation }: Props) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const sendOtp = useMutation({
-    mutationFn: () => requestOtp(email.trim()),
+    mutationFn: () => requestOtp(email.trim(), name.trim()),
     onSuccess: () => navigation.navigate("Otp", { email: email.trim() }),
     onError: (err: Error) => setError(err.message),
   });
 
   function handleSubmit() {
+    if (!name.trim()) {
+      setError("Enter a name Milo can call you.");
+      return;
+    }
     if (!email.trim()) {
       setError("Enter your email address to continue.");
       return;
@@ -33,11 +38,19 @@ export default function EmailEntryScreen({ navigation }: Props) {
       <View style={styles.hero}>
         <MiloCore state="idle" size={56} />
         <Text style={styles.title}>I'm Milo.</Text>
-        <Text style={styles.subtitle}>
-          Sign in with your FinanceTracker email — one account works across FinanceTracker,
-          KitchenPlanner, and Milo.
-        </Text>
+        <Text style={styles.subtitle}>Enter your email — I'll send you a code to sign in.</Text>
       </View>
+
+      <TextInput
+        style={styles.input}
+        value={name}
+        onChangeText={setName}
+        placeholder="Your name"
+        placeholderTextColor={colors.textMuted}
+        autoCapitalize="words"
+        onSubmitEditing={handleSubmit}
+        returnKeyType="next"
+      />
 
       <TextInput
         style={styles.input}

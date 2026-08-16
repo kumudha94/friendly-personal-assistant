@@ -22,13 +22,9 @@ import type {
   WeightUnit,
 } from "../types";
 
-import { getAccessToken, getRefreshToken, setAccessToken, clearTokens } from "./authStorage";
+import { getToken, clearToken } from "./authStorage";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5000";
-
-// Login lives on FinanceTracker now — one shared identity across FinanceTracker,
-// KitchenPlanner, and Milo. See project notes for why.
-const AUTH_API_URL = process.env.EXPO_PUBLIC_AUTH_API_URL ?? "https://financetracker-ckvf.onrender.com";
 
 let onUnauthorized: (() => void) | null = null;
 
@@ -38,51 +34,20 @@ export function setUnauthorizedHandler(fn: (() => void) | null): void {
   onUnauthorized = fn;
 }
 
-// FinanceTracker's access tokens are short-lived (15 min) by design, so a plain 401 doesn't
-// necessarily mean "log out" — try to mint a fresh access token from the stored refresh
-// token first, same retry-once pattern FinanceTracker's own mobile client uses.
-async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = await getRefreshToken();
-  if (!refreshToken) return null;
-  try {
-    const res = await fetch(`${AUTH_API_URL}/api/auth/refresh-token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (!data.accessToken) return null;
-    await setAccessToken(data.accessToken);
-    return data.accessToken as string;
-  } catch {
-    return null;
-  }
-}
-
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = await getAccessToken();
-
-  const doFetch = (authToken: string | null) =>
-    fetch(`${API_URL}${path}`, {
-      ...init,
-      headers: {
-        "Content-Type": "application/json",
-        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-        ...init?.headers,
-      },
-    });
-
-  let res = await doFetch(token);
+  const token = await getToken();
+  const res = await fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init?.headers,
+    },
+  });
 
   if (res.status === 401 || res.status === 403) {
-    const newToken = token ? await refreshAccessToken() : null;
-    if (newToken) {
-      res = await doFetch(newToken);
-    } else {
-      await clearTokens();
-      onUnauthorized?.();
-    }
+    await clearToken();
+    onUnauthorized?.();
   }
 
   if (!res.ok) {
@@ -93,36 +58,64 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
-export async function requestOtp(email: string): Promise<void> {
-  const res = await fetch(`${AUTH_API_URL}/api/auth/request-otp`, {
+// Milo's own login — independent account, own OTP flow (not shared with FinanceTracker or
+// KitchenPlanner). Unauthenticated on purpose: request()'s Bearer header doesn't apply here.
+export async function requestOtp(email: string, name: string): Promise<void> {
+  const res = await fetch(`${API_URL}/auth/request-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    // FinanceTracker's request-otp requires `username`, but only actually uses it if this
-    // is a brand-new account — for the already-existing shared account it's ignored.
-    body: JSON.stringify({ email, username: email.split("@")[0] }),
+    body: JSON.stringify({ email, name }),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error ?? "Couldn't send the code.");
+    throw new Error(body.message ?? "Couldn't send the code.");
   }
 }
 
 export type AuthUser = { id: number; name: string; email: string };
 
-export async function verifyOtp(
-  email: string,
-  otp: string
-): Promise<{ accessToken: string; refreshToken: string; user: AuthUser }> {
-  const res = await fetch(`${AUTH_API_URL}/api/auth/verify-otp`, {
+export async function verifyOtp(email: string, code: string): Promise<{ token: string; user: AuthUser }> {
+  const res = await fetch(`${API_URL}/auth/verify-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, otp }),
+    body: JSON.stringify({ email, code }),
   });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(body.error ?? "That code didn't work.");
+    throw new Error(body.message ?? "That code didn't work.");
   }
   return body;
+}
+
+// Connected Apps — read-only, explicit-consent access to FinanceTracker/KitchenPlanner data.
+export type ConnectionEntry = {
+  appId: "financetracker" | "kitchenplanner";
+  name: string;
+  status: "not_installed" | "connectable" | "connected";
+  email?: string;
+};
+
+export function getConnections() {
+  return request<ConnectionEntry[]>("/connections");
+}
+
+export function requestConnectOtp(appId: string) {
+  return request<void>(`/connections/${appId}/request-otp`, { method: "POST" });
+}
+
+export function verifyConnectOtp(appId: string, code: string) {
+  return request<void>(`/connections/${appId}/verify-otp`, {
+    method: "POST",
+    body: JSON.stringify({ code }),
+  });
+}
+
+export function disconnectApp(appId: string) {
+  return request<void>(`/connections/${appId}`, { method: "DELETE" });
+}
+
+export function deleteAccount() {
+  return request<void>("/account", { method: "DELETE" });
 }
 
 export function getHabits() {
@@ -308,21 +301,6 @@ export function updateMemory(id: number, patch: { text: string }) {
 
 export function deleteMemory(id: number) {
   return request<void>(`/memories/${id}`, { method: "DELETE" });
-}
-
-export function requestFinanceOtp(email: string) {
-  return request<void>("/finance_link/request_otp", { method: "POST", body: JSON.stringify({ email }) });
-}
-
-export function verifyFinanceOtp(email: string, code: string) {
-  return request<{ email: string }>("/finance_link/verify_otp", {
-    method: "POST",
-    body: JSON.stringify({ email, code }),
-  });
-}
-
-export function unlinkFinance() {
-  return request<void>("/finance_link", { method: "DELETE" });
 }
 
 export function getFinanceSnapshot() {

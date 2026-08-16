@@ -106,6 +106,17 @@ export const memories = pgTable("memories", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Milo's own account (independent login — not shared with FinanceTracker/KitchenPlanner).
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Used both for Milo's own login OTP and (transiently, not persisted long-term) nothing
+// else — the "Connected Apps" OTP round-trip is verified by the *other* app's own backend,
+// not stored here.
 export const emailOtps = pgTable("email_otps", {
   id: serial("id").primaryKey(),
   email: text("email").notNull(),
@@ -113,10 +124,15 @@ export const emailOtps = pgTable("email_otps", {
   expiresAt: timestamp("expires_at").notNull(),
 });
 
-export const financeLink = pgTable("finance_link", {
+// One row per connected app (FinanceTracker, KitchenPlanner, future ones) — generalizes the
+// old FinanceTracker-only financeLink table. externalUserId is only meaningful for apps that
+// are actually multi-tenant under the hood (FinanceTracker); null for single-tenant ones
+// (KitchenPlanner) where it's not needed to scope any query.
+export const appConnections = pgTable("app_connections", {
   id: serial("id").primaryKey(),
+  appId: text("app_id").notNull(),
   email: text("email").notNull(),
-  financeUserId: integer("finance_user_id").notNull(),
+  externalUserId: integer("external_user_id"),
   verifiedAt: timestamp("verified_at").notNull().defaultNow(),
 });
 
@@ -137,7 +153,8 @@ export const insertSymptomLogSchema = createInsertSchema(symptomLogs).omit({ id:
 export const insertCycleLogSchema = createInsertSchema(cycleLogs).omit({ id: true });
 export const insertMemorySchema = createInsertSchema(memories).omit({ id: true, createdAt: true });
 export const insertEmailOtpSchema = createInsertSchema(emailOtps).omit({ id: true });
-export const insertFinanceLinkSchema = createInsertSchema(financeLink).omit({ id: true, verifiedAt: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+export const insertAppConnectionSchema = createInsertSchema(appConnections).omit({ id: true, verifiedAt: true });
 
 export type Habit = typeof habits.$inferSelect;
 export type InsertHabit = typeof habits.$inferInsert;
@@ -167,5 +184,7 @@ export type Memory = typeof memories.$inferSelect;
 export type InsertMemory = typeof memories.$inferInsert;
 export type EmailOtp = typeof emailOtps.$inferSelect;
 export type InsertEmailOtp = typeof emailOtps.$inferInsert;
-export type FinanceLink = typeof financeLink.$inferSelect;
-export type InsertFinanceLink = typeof financeLink.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+export type AppConnection = typeof appConnections.$inferSelect;
+export type InsertAppConnection = typeof appConnections.$inferInsert;

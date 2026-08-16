@@ -1,13 +1,8 @@
-import { useState } from "react";
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  useFinanceSnapshot,
-  useRequestFinanceOtp,
-  useUnlinkFinance,
-  useVerifyFinanceOtp,
-} from "../hooks/useFinanceLink";
+import { useFinanceSnapshot } from "../hooks/useFinanceLink";
 import EmptyState from "../components/EmptyState";
+import { navigate } from "../navigation/navigationRef";
 import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
 import type { FinanceBillItem } from "../types";
 
@@ -19,75 +14,6 @@ const KIND_ICON: Record<FinanceBillItem["kind"], keyof typeof Ionicons.glyphMap>
 
 function formatCurrency(amount: number): string {
   return `₹${amount.toLocaleString("en-IN")}`;
-}
-
-function ConnectFlow() {
-  const [email, setEmail] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [code, setCode] = useState("");
-  const requestOtp = useRequestFinanceOtp();
-  const verifyOtp = useVerifyFinanceOtp();
-
-  const canSend = email.trim().length > 0 && !requestOtp.isPending;
-  const canVerify = code.trim().length > 0 && !verifyOtp.isPending;
-
-  const handleSend = () => {
-    if (!canSend) return;
-    requestOtp.mutate(email.trim(), { onSuccess: () => setOtpSent(true) });
-  };
-
-  const handleVerify = () => {
-    if (!canVerify) return;
-    verifyOtp.mutate({ email: email.trim(), code: code.trim() });
-  };
-
-  return (
-    <View style={styles.card}>
-      <Text style={styles.heading}>Connect FinanceTracker</Text>
-      <Text style={styles.subheading}>
-        Milo will send a one-time code to confirm the email, then read your upcoming bills and
-        balance — read-only, nothing is ever changed in FinanceTracker.
-      </Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Your FinanceTracker email"
-        placeholderTextColor={colors.textMuted}
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        editable={!otpSent}
-      />
-
-      {!otpSent ? (
-        <TouchableOpacity style={[styles.button, !canSend && styles.buttonDisabled]} onPress={handleSend} disabled={!canSend}>
-          {requestOtp.isPending ? <ActivityIndicator color={colors.textPrimary} /> : <Text style={styles.buttonText}>Send code</Text>}
-        </TouchableOpacity>
-      ) : (
-        <>
-          <TextInput
-            style={styles.input}
-            placeholder="6-digit code"
-            placeholderTextColor={colors.textMuted}
-            value={code}
-            onChangeText={setCode}
-            keyboardType="number-pad"
-            maxLength={6}
-          />
-          <TouchableOpacity style={[styles.button, !canVerify && styles.buttonDisabled]} onPress={handleVerify} disabled={!canVerify}>
-            {verifyOtp.isPending ? <ActivityIndicator color={colors.textPrimary} /> : <Text style={styles.buttonText}>Verify</Text>}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => { setOtpSent(false); setCode(""); }}>
-            <Text style={styles.changeEmailText}>Use a different email</Text>
-          </TouchableOpacity>
-        </>
-      )}
-
-      {requestOtp.isError && <Text style={styles.error}>{(requestOtp.error as Error).message}</Text>}
-      {verifyOtp.isError && <Text style={styles.error}>{(verifyOtp.error as Error).message}</Text>}
-    </View>
-  );
 }
 
 function BillRow({ item }: { item: FinanceBillItem }) {
@@ -105,7 +31,6 @@ function BillRow({ item }: { item: FinanceBillItem }) {
 
 export default function FinanceScreen() {
   const snapshotQuery = useFinanceSnapshot();
-  const unlinkFinance = useUnlinkFinance();
 
   if (snapshotQuery.isLoading) {
     return (
@@ -128,17 +53,15 @@ export default function FinanceScreen() {
   if (!snapshot || !snapshot.linked) {
     return (
       <View style={styles.container}>
-        <ConnectFlow />
+        <EmptyState
+          title="Not connected"
+          subtitle="Connect FinanceTracker from Connected Apps to see your balance and bills here."
+          actionLabel="Go to Connected Apps"
+          onAction={() => navigate("More", { screen: "ConnectedApps" })}
+        />
       </View>
     );
   }
-
-  const handleDisconnect = () => {
-    Alert.alert("Disconnect FinanceTracker?", `Milo will stop reading data for ${snapshot.email}.`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Disconnect", style: "destructive", onPress: () => unlinkFinance.mutate() },
-    ]);
-  };
 
   return (
     <FlatList
@@ -162,15 +85,6 @@ export default function FinanceScreen() {
       ListEmptyComponent={<EmptyState title="Nothing due this month." subtitle="You're all caught up." />}
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       renderItem={({ item }) => <BillRow item={item} />}
-      ListFooterComponent={
-        <TouchableOpacity style={styles.disconnectButton} onPress={handleDisconnect} disabled={unlinkFinance.isPending}>
-          {unlinkFinance.isPending ? (
-            <ActivityIndicator color={colors.error} />
-          ) : (
-            <Text style={styles.disconnectText}>Disconnect</Text>
-          )}
-        </TouchableOpacity>
-      }
     />
   );
 }
@@ -179,23 +93,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE },
   centered: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background },
   errorText: { color: colors.error, textAlign: "center", padding: spacing.lg },
-  card: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, gap: spacing.sm },
-  heading: { fontSize: typography.sectionTitle.fontSize, fontWeight: "700", color: colors.textPrimary },
-  subheading: { fontSize: typography.secondary.fontSize, color: colors.textMuted, lineHeight: 19 },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.control,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: colors.elevatedSurface,
-    color: colors.textPrimary,
-  },
-  button: { backgroundColor: colors.accent, borderRadius: radius.control, paddingVertical: 12, alignItems: "center" },
-  buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: colors.textPrimary, fontWeight: "600" },
-  changeEmailText: { color: colors.textMuted, fontSize: typography.caption.fontSize, textAlign: "center" },
-  error: { color: colors.error, fontSize: typography.caption.fontSize },
   list: { padding: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE, gap: spacing.xs },
   headerGap: { gap: spacing.sm, marginBottom: spacing.xs },
   balanceCard: { padding: spacing.md, borderRadius: radius.card, backgroundColor: colors.surface, alignItems: "center", gap: 2 },
@@ -218,6 +115,4 @@ const styles = StyleSheet.create({
   billLabel: { fontSize: typography.body.fontSize, color: colors.textPrimary },
   billDate: { fontSize: typography.caption.fontSize, color: colors.textMuted, marginTop: 2 },
   billAmount: { fontSize: typography.secondary.fontSize, fontWeight: "700", color: colors.textPrimary },
-  disconnectButton: { alignItems: "center", paddingVertical: spacing.md, marginTop: spacing.sm },
-  disconnectText: { color: colors.error, fontWeight: "600", fontSize: typography.secondary.fontSize },
 });

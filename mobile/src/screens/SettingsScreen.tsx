@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useMutation } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import {
   getProfile,
@@ -11,6 +12,7 @@ import {
   type QuietHours,
 } from "../lib/settings";
 import { useAuth } from "../contexts/AuthContext";
+import { deleteAccount } from "../lib/api";
 import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
 
 function parseTime(value: string): Date {
@@ -26,6 +28,11 @@ function formatTime(date: Date): string {
 
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
+  const deleteAccountMutation = useMutation({
+    mutationFn: deleteAccount,
+    onSuccess: () => logout(),
+    onError: (err: Error) => Alert.alert("Couldn't delete account", err.message),
+  });
   const [profile, setProfileState] = useState<Profile | null>(null);
   const [nameDraft, setNameDraft] = useState("");
   const [nameJustSaved, setNameJustSaved] = useState(false);
@@ -60,19 +67,35 @@ export default function SettingsScreen() {
 
   if (!quietHours || !profile) return null;
 
+  function handleDeleteAccount() {
+    Alert.alert(
+      "Delete your Milo account?",
+      "This permanently deletes your account and every habit, reminder, journal entry, and everything else Milo has stored for you. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete everything", style: "destructive", onPress: () => deleteAccountMutation.mutate() },
+      ],
+    );
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>Account</Text>
       <View style={styles.card}>
         <Text style={styles.label}>Signed in as</Text>
         <Text style={styles.subheading}>{user?.email}</Text>
-        <Text style={styles.subheading}>
-          Shared login with FinanceTracker and KitchenPlanner — manage the account itself
-          from FinanceTracker.
-        </Text>
         <TouchableOpacity style={styles.logoutRow} onPress={() => logout()}>
           <Ionicons name="log-out-outline" size={18} color={colors.textPrimary} />
           <Text style={styles.logoutText}>Log out</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.deleteRow}
+          onPress={handleDeleteAccount}
+          disabled={deleteAccountMutation.isPending}
+        >
+          <Text style={styles.deleteText}>
+            {deleteAccountMutation.isPending ? "Deleting…" : "Delete account"}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -197,4 +220,6 @@ const styles = StyleSheet.create({
   noteText: { fontSize: typography.caption.fontSize, color: colors.textMuted, lineHeight: 18 },
   logoutRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs, marginTop: spacing.xs },
   logoutText: { fontSize: 14, fontWeight: "600", color: colors.textPrimary },
+  deleteRow: { marginTop: spacing.xs },
+  deleteText: { fontSize: 13, color: colors.error, textDecorationLine: "underline" },
 });

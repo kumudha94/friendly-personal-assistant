@@ -25,6 +25,7 @@ const MENU_ITEMS: {
   { route: "Memory", icon: "bulb", label: "Memory", description: "Things Milo remembers about you" },
   { route: "Finance", icon: "wallet", label: "Finance", description: "Upcoming bills and balance from FinanceTracker" },
   { route: "Kitchen", icon: "restaurant", label: "Kitchen", description: "Today's meal plan from KitchenPlanner" },
+  { route: "ConnectedApps", icon: "link", label: "Connected Apps", description: "Manage what Milo can read from other apps" },
 ];
 
 export default function MoreMenuScreen({ navigation }: Props) {

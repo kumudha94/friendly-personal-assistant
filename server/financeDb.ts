@@ -10,12 +10,6 @@ function getFinanceSql() {
   return neon(process.env.FINANCE_DATABASE_URL);
 }
 
-export async function findFinanceUserIdByEmail(email: string): Promise<number | null> {
-  const sql = getFinanceSql();
-  const rows = await sql`SELECT id FROM users WHERE email = ${email} LIMIT 1`;
-  return rows.length > 0 ? Number(rows[0].id) : null;
-}
-
 export async function getAccountBalance(userId: number): Promise<number> {
   const sql = getFinanceSql();
   const rows = await sql`

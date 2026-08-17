@@ -20,6 +20,7 @@ import { weatherEmoji } from "../lib/weather";
 import { dismissToday, getDismissals, isDismissed, muteForever, type Dismissals } from "../lib/insights";
 import type { Profile } from "../lib/settings";
 import EmptyState from "../components/EmptyState";
+import GradientCard from "../components/GradientCard";
 import MiloCore from "../components/milo/MiloCore";
 import MiloSheet from "../components/milo/MiloSheet";
 import MiloInsight from "../components/milo/MiloInsight";
@@ -28,7 +29,8 @@ import { getProfile } from "../lib/settings";
 import { DEFAULT_WATER_SETTINGS, formatWaterCompact, getWaterSettings, servingMl, type WaterSettings } from "../lib/waterSettings";
 import { DEFAULT_CYCLE_SETTINGS, getCycleSettings, type CycleSettings } from "../lib/cycleSettings";
 import { getBalanceHidden, setBalanceHidden } from "../lib/balancePrivacy";
-import { colors, MILO_BAR_CLEARANCE, radius, spacing, typography } from "../theme/tokens";
+import { renderHighlighted } from "../lib/highlightText";
+import { colors, gradients, MILO_BAR_CLEARANCE, spacing, typography } from "../theme/tokens";
 
 const MEAL_SLOT_TIME: Record<MealSlot, string> = { breakfast: "08:00", lunch: "13:00", dinner: "19:00" };
 const MEAL_SLOTS: MealSlot[] = ["breakfast", "lunch", "dinner"];
@@ -223,20 +225,19 @@ export default function DashboardScreen() {
           <MiloCore state="idle" size={44} />
         </TouchableOpacity>
         {weatherSnapshot?.configured && (
-          <Text style={styles.weatherLine}>
-            {weatherEmoji(weatherSnapshot.condition)} {weatherSnapshot.tempC}°C · {weatherSnapshot.description}
-          </Text>
+          <GradientCard colors={gradients.weatherChip} style={styles.weatherChipInner}>
+            <Text style={styles.weatherLine}>
+              {weatherEmoji(weatherSnapshot.condition)}{" "}
+              {renderHighlighted(`${weatherSnapshot.tempC}°C · ${weatherSnapshot.description}`)}
+            </Text>
+          </GradientCard>
         )}
-        <Text style={styles.briefMessage}>{briefMessage}</Text>
+        <Text style={styles.briefMessage}>{renderHighlighted(briefMessage)}</Text>
       </View>
 
       {/* Money — equal billing with Home and Personal, not buried behind a chip */}
       {financeSnapshot?.linked && (
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => navigate("More", { screen: "Finance" })}
-          activeOpacity={0.85}
-        >
+        <GradientCard style={styles.card} onPress={() => navigate("More", { screen: "Finance" })}>
           <View style={styles.cardHeaderRow}>
             <Text style={styles.cardLabel}>💰 MONEY</Text>
             <TouchableOpacity onPress={toggleBalanceHidden} hitSlop={8}>
@@ -257,16 +258,12 @@ export default function DashboardScreen() {
             </View>
           )}
           <Text style={styles.cardLink}>View Finance</Text>
-        </TouchableOpacity>
+        </GradientCard>
       )}
 
       {/* Home — kitchen/meal status */}
       {nextMeal && (
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => navigate("More", { screen: "Kitchen" })}
-          activeOpacity={0.85}
-        >
+        <GradientCard style={styles.card} onPress={() => navigate("More", { screen: "Kitchen" })}>
           <Text style={styles.cardLabel}>🏠 HOME · {nextMeal.slot === "dinner" ? "TONIGHT" : MEAL_SLOT_LABEL[nextMeal.slot].toUpperCase()}</Text>
           {nextMeal.label ? (
             <>
@@ -282,15 +279,11 @@ export default function DashboardScreen() {
               <Text style={styles.cardLink}>Plan {MEAL_SLOT_LABEL[nextMeal.slot]}</Text>
             </>
           )}
-        </TouchableOpacity>
+        </GradientCard>
       )}
 
       {/* Personal — habits + water get the same billing as Money and Home, not buried in More */}
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => navigate("More", { screen: "Personal" })}
-        activeOpacity={0.85}
-      >
+      <GradientCard style={styles.card} onPress={() => navigate("More", { screen: "Personal" })}>
         <Text style={styles.cardLabel}>🧍 PERSONAL</Text>
         <View style={styles.cardRow}>
           <Text style={styles.cardRowLabel}>✓ Habits</Text>
@@ -303,7 +296,7 @@ export default function DashboardScreen() {
           </Text>
         </View>
         <Text style={styles.cardLink}>View Personal</Text>
-      </TouchableOpacity>
+      </GradientCard>
 
       {/* Milo Suggests — the one thing worth acting on, with real actions (unlike the brief above) */}
       {topInsight && (
@@ -346,22 +339,30 @@ export default function DashboardScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>QUICK ACTIONS</Text>
         <View style={styles.quickActionsRow}>
-          <TouchableOpacity style={styles.quickAction} onPress={handleQuickWater}>
-            <Ionicons name="water-outline" size={18} color={colors.accent} />
-            <Text style={styles.quickActionText}>Water</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.quickAction} onPress={handleQuickHabit}>
-            <Ionicons name="checkmark-circle-outline" size={18} color={colors.accent} />
-            <Text style={styles.quickActionText}>Habit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.quickAction} onPress={() => navigate("More", { screen: "Kitchen" })}>
-            <Ionicons name="restaurant-outline" size={18} color={colors.accent} />
-            <Text style={styles.quickActionText}>Dinner</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.quickAction} onPress={() => setSheetOpen(true)}>
-            <Ionicons name="alarm-outline" size={18} color={colors.accent} />
-            <Text style={styles.quickActionText}>Reminder</Text>
-          </TouchableOpacity>
+          <View style={styles.quickActionSlot}>
+            <GradientCard style={styles.quickAction} onPress={handleQuickWater}>
+              <Ionicons name="water-outline" size={18} color={colors.accent} />
+              <Text style={styles.quickActionText}>Water</Text>
+            </GradientCard>
+          </View>
+          <View style={styles.quickActionSlot}>
+            <GradientCard style={styles.quickAction} onPress={handleQuickHabit}>
+              <Ionicons name="checkmark-circle-outline" size={18} color={colors.accent} />
+              <Text style={styles.quickActionText}>Habit</Text>
+            </GradientCard>
+          </View>
+          <View style={styles.quickActionSlot}>
+            <GradientCard style={styles.quickAction} onPress={() => navigate("More", { screen: "Kitchen" })}>
+              <Ionicons name="restaurant-outline" size={18} color={colors.accent} />
+              <Text style={styles.quickActionText}>Dinner</Text>
+            </GradientCard>
+          </View>
+          <View style={styles.quickActionSlot}>
+            <GradientCard style={styles.quickAction} onPress={() => setSheetOpen(true)}>
+              <Ionicons name="alarm-outline" size={18} color={colors.accent} />
+              <Text style={styles.quickActionText}>Reminder</Text>
+            </GradientCard>
+          </View>
         </View>
       </View>
 
@@ -380,15 +381,16 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   screen: { backgroundColor: colors.background },
-  content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.md + MILO_BAR_CLEARANCE },
+  content: { padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.md + MILO_BAR_CLEARANCE },
   centered: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background },
   errorText: { color: colors.error, textAlign: "center", padding: spacing.lg },
 
-  briefBlock: { alignItems: "center", gap: 4, paddingVertical: spacing.sm },
-  greeting: { color: colors.textSecondary, fontSize: typography.secondary.fontSize },
-  dateHeading: { color: colors.textPrimary, fontSize: typography.screenTitle.fontSize, fontWeight: "700" },
+  briefBlock: { alignItems: "center", gap: spacing.xs, paddingVertical: spacing.md },
+  greeting: { color: colors.textPrimary, fontSize: typography.hero.fontSize, fontWeight: "700" },
+  dateHeading: { color: colors.textSecondary, fontSize: typography.body.fontSize },
   coreTap: { paddingVertical: spacing.sm },
-  weatherLine: { color: colors.textSecondary, fontSize: typography.secondary.fontSize },
+  weatherChipInner: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
+  weatherLine: { color: colors.textPrimary, fontSize: typography.secondary.fontSize, fontWeight: "500" },
   briefMessage: {
     color: colors.textSecondary,
     fontSize: typography.body.fontSize,
@@ -397,7 +399,7 @@ const styles = StyleSheet.create({
   },
 
   section: { gap: spacing.xs },
-  sectionLabel: { color: colors.textMuted, fontSize: typography.caption.fontSize, fontWeight: "600", letterSpacing: 0.5 },
+  sectionLabel: { color: colors.textMuted, fontSize: typography.caption.fontSize, fontWeight: "600", letterSpacing: 1 },
 
   timelineRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: 2 },
   timelineTime: { color: colors.textMuted, fontSize: typography.secondary.fontSize, width: 52 },
@@ -405,10 +407,6 @@ const styles = StyleSheet.create({
 
   card: {
     padding: spacing.md,
-    borderRadius: radius.card,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
     gap: 2,
   },
   cardHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
@@ -423,13 +421,11 @@ const styles = StyleSheet.create({
   cardLink: { color: colors.accent, fontSize: typography.caption.fontSize, fontWeight: "600", marginTop: spacing.sm },
 
   quickActionsRow: { flexDirection: "row", gap: spacing.xs },
+  quickActionSlot: { flex: 1 },
   quickAction: {
-    flex: 1,
     alignItems: "center",
     gap: 4,
     paddingVertical: spacing.sm,
-    borderRadius: radius.control,
-    backgroundColor: colors.elevatedSurface,
   },
   quickActionText: { color: colors.textSecondary, fontSize: typography.caption.fontSize, fontWeight: "600" },
 });

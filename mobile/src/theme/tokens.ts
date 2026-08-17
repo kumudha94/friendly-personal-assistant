@@ -18,6 +18,16 @@ export const colors = {
 
   water: "#38bdf8",
   cycle: "#f472b6",
+
+  // Warm accent used to pick out numbers/keywords inline within otherwise muted body text.
+  highlight: "#f6c65b",
+} as const;
+
+// Soft two-tone backgrounds for card-style surfaces — an alternative to the flat
+// colors.surface + border treatment, used where a more premium/pillowy look is wanted.
+export const gradients = {
+  card: [colors.elevatedSurface, colors.surface] as const,
+  weatherChip: ["#2A2454", colors.accentSoft] as const,
 } as const;
 
 export const typography = {

@@ -1,6 +1,7 @@
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 import { useHabits } from "../hooks/useHabits";
 import { useHabitLogs } from "../hooks/useHabitLogs";
+import { useGoals } from "../hooks/useGoals";
 import HabitForm from "../components/HabitForm";
 import HabitCard from "../components/HabitCard";
 import EmptyState from "../components/EmptyState";
@@ -10,6 +11,7 @@ import { colors, MILO_BAR_CLEARANCE, spacing } from "../theme/tokens";
 export default function HabitsScreen() {
   const habitsQuery = useHabits();
   const logsQuery = useHabitLogs();
+  const goalsQuery = useGoals();
 
   if (habitsQuery.isLoading || logsQuery.isLoading) {
     return (
@@ -29,6 +31,8 @@ export default function HabitsScreen() {
 
   const habits = habitsQuery.data ?? [];
   const logs = logsQuery.data ?? [];
+  const goals = goalsQuery.data ?? [];
+  const linkedHabitIds = new Set(goals.filter((g) => g.habitId != null).map((g) => g.habitId));
 
   return (
     <FlatList
@@ -41,7 +45,11 @@ export default function HabitsScreen() {
       }
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       renderItem={({ item }) => (
-        <HabitCard habit={item} logs={logs.filter((l) => l.habitId === item.id)} />
+        <HabitCard
+          habit={item}
+          logs={logs.filter((l) => l.habitId === item.id)}
+          isLinkedToGoal={linkedHabitIds.has(item.id)}
+        />
       )}
     />
   );

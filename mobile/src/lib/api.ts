@@ -127,6 +127,10 @@ export function createHabit(input: { name: string; frequency: string; targetCoun
   return request<Habit>("/habits", { method: "POST", body: JSON.stringify(input) });
 }
 
+export function updateHabit(id: number, patch: Partial<Pick<Habit, "name" | "frequency" | "targetCount">>) {
+  return request<Habit>(`/habits/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+}
+
 export function deleteHabit(id: number) {
   return request<void>(`/habits/${id}`, { method: "DELETE" });
 }

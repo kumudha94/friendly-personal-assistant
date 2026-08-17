@@ -25,8 +25,14 @@ export const colors = {
 
 // Soft two-tone backgrounds for card-style surfaces — an alternative to the flat
 // colors.surface + border treatment, used where a more premium/pillowy look is wanted.
+// Each Dashboard card gets a distinct color tint (matching its category) fading into
+// colors.surface, the same visible-gradient treatment as the weather chip, rather than a
+// near-invisible one-step-darker gray.
 export const gradients = {
-  card: [colors.elevatedSurface, colors.surface] as const,
+  card: ["#1E2130", colors.surface] as const,
+  money: ["#332405", colors.surface] as const,
+  home: ["#0F2E24", colors.surface] as const,
+  personal: ["#241F45", colors.surface] as const,
   weatherChip: ["#2A2454", colors.accentSoft] as const,
 } as const;
 

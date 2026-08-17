@@ -237,7 +237,7 @@ export default function DashboardScreen() {
 
       {/* Money — equal billing with Home and Personal, not buried behind a chip */}
       {financeSnapshot?.linked && (
-        <GradientCard style={styles.card} onPress={() => navigate("More", { screen: "Finance" })}>
+        <GradientCard style={styles.card} colors={gradients.money} onPress={() => navigate("More", { screen: "Finance" })}>
           <View style={styles.cardHeaderRow}>
             <Text style={styles.cardLabel}>💰 MONEY</Text>
             <TouchableOpacity onPress={toggleBalanceHidden} hitSlop={8}>
@@ -263,7 +263,7 @@ export default function DashboardScreen() {
 
       {/* Home — kitchen/meal status */}
       {nextMeal && (
-        <GradientCard style={styles.card} onPress={() => navigate("More", { screen: "Kitchen" })}>
+        <GradientCard style={styles.card} colors={gradients.home} onPress={() => navigate("More", { screen: "Kitchen" })}>
           <Text style={styles.cardLabel}>🏠 HOME · {nextMeal.slot === "dinner" ? "TONIGHT" : MEAL_SLOT_LABEL[nextMeal.slot].toUpperCase()}</Text>
           {nextMeal.label ? (
             <>
@@ -283,7 +283,7 @@ export default function DashboardScreen() {
       )}
 
       {/* Personal — habits + water get the same billing as Money and Home, not buried in More */}
-      <GradientCard style={styles.card} onPress={() => navigate("More", { screen: "Personal" })}>
+      <GradientCard style={styles.card} colors={gradients.personal} onPress={() => navigate("More", { screen: "Personal" })}>
         <Text style={styles.cardLabel}>🧍 PERSONAL</Text>
         <View style={styles.cardRow}>
           <Text style={styles.cardRowLabel}>✓ Habits</Text>

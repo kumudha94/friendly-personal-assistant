@@ -37,7 +37,26 @@ function MainTabs() {
       <Tab.Screen name="Today" component={DashboardScreen} />
       <Tab.Screen name="Habits" component={HabitsScreen} />
       <Tab.Screen name="Reminders" component={RemindersScreen} />
-      <Tab.Screen name="More" component={MoreStack} options={{ headerShown: false }} />
+      <Tab.Screen
+        name="More"
+        component={MoreStack}
+        options={{ headerShown: false }}
+        listeners={({ navigation }) => ({
+          // Dashboard shortcuts (Finance/Kitchen/Personal cards) deep-link straight into
+          // MoreStack via navigate("More", { screen: "X" }), which leaves that nested stack
+          // parked on X. Without this, pressing the More tab button afterwards reopens
+          // wherever it was left instead of the menu list — this resets it to MoreMenu
+          // whenever the tab is pressed directly, without affecting those deep-link navigates.
+          tabPress: (e) => {
+            const state = navigation.getState();
+            const moreRoute = state.routes.find((r: { name: string }) => r.name === "More");
+            if ((moreRoute?.state?.index ?? 0) > 0) {
+              e.preventDefault();
+              navigation.navigate("More", { screen: "MoreMenu" });
+            }
+          },
+        })}
+      />
     </Tab.Navigator>
   );
 }
